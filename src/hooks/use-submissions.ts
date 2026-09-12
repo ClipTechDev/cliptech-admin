@@ -156,15 +156,14 @@ function useSubmissionAction<TBody>(
   });
 }
 
-export function useApproveSubmission(id: string, campaignId?: string) {
-  return useSubmissionAction<never>(id, "approve", campaignId);
+export function useUnflagSubmission(id: string, campaignId?: string) {
+  return useSubmissionAction<never>(id, "unflag", campaignId);
 }
 
 export function useRejectSubmission(id: string, campaignId?: string) {
   return useSubmissionAction<{ reason: string }>(id, "reject", campaignId);
 }
 
-/** The reason is optional here - flagging in passing shouldn't need a case. */
 export function useFlagSubmission(id: string, campaignId?: string) {
   return useSubmissionAction<{ reason: string }>(id, "flag", campaignId);
 }

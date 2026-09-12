@@ -7,7 +7,6 @@ import type { SocialPlatform } from "@/schemas/social-account";
  */
 
 export const SUBMISSION_STATUSES = [
-  "pending",
   "approved",
   "rejected",
   "flagged",
@@ -48,7 +47,7 @@ export type Submission = {
   campaign_id: string;
   campaign_name: string;
   user_id: string;
-  social_account_id: string;
+  social_account_id: string | null;
 
   platform: SocialPlatform;
   post_url: string;
@@ -66,6 +65,8 @@ export type Submission = {
   pending_amount: number;
 
   status: SubmissionStatus;
+  issues: SubmissionIssue[];
+  can_recheck: boolean;
   invalid_reason: string | null;
   invalidated_at: string | null;
   /** Also carries the note when a post is flagged, not only when rejected. */
@@ -111,12 +112,33 @@ export type ViewLogsResponse = {
   pagination: PageMeta;
 };
 
-/** Only a pending submission can be approved, rejected or invalidated. */
-export function canReview(submission: Submission): boolean {
-  return submission.status === "pending";
+export const SUBMISSION_ISSUE_CODES = [
+  "account_disconnected",
+  "tracking_unavailable",
+  "post_unreadable",
+  "not_post_owner",
+  "missing_hashtags",
+] as const;
+
+export type SubmissionIssueCode = (typeof SUBMISSION_ISSUE_CODES)[number];
+
+export type SubmissionIssue = {
+  code: SubmissionIssueCode | string;
+  detail?: string;
+};
+
+export function canReject(submission: Submission): boolean {
+  return submission.status === "approved" || submission.status === "flagged";
 }
 
-/** ErrNotFlaggable: only an approved or pending post can be set aside. */
 export function canFlag(submission: Submission): boolean {
-  return submission.status === "approved" || submission.status === "pending";
+  return submission.status === "approved";
+}
+
+export function canUnflag(submission: Submission): boolean {
+  return submission.status === "flagged";
+}
+
+export function canInvalidate(submission: Submission): boolean {
+  return submission.status === "approved" || submission.status === "flagged";
 }
