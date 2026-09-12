@@ -29,7 +29,8 @@ const statusOptions = USER_STATUSES.map((status) => ({
 export function UsersTable() {
   const router = useRouter();
   const { params, setParams, reset } = useListParams(USER_FILTER_KEYS);
-  const { data, isLoading, isFetching, error, refetch } = useUsersQuery(params);
+  const { data, isLoading, isFetching, dataUpdatedAt, error, refetch } =
+    useUsersQuery(params);
 
   const users = data?.users ?? [];
   const meta = data?.pagination;
@@ -71,6 +72,11 @@ export function UsersTable() {
               from: params.from,
               to: params.to,
               onChange: (range) => setParams(range),
+            }}
+            refresh={{
+              onRefresh: () => void refetch(),
+              isRefreshing: isFetching,
+              updatedAt: dataUpdatedAt,
             }}
             isFiltered={hasFilters(params)}
             onReset={reset}

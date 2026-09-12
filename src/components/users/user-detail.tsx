@@ -16,6 +16,7 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { DetailList } from "@/components/shared/detail-list";
 import { PageHeader } from "@/components/shared/page-header";
 import { QueryState, errorMessage } from "@/components/shared/query-state";
+import { RefreshButton } from "@/components/shared/refresh-button";
 import { RelatedLinks } from "@/components/shared/related-links";
 import { RecordActivity } from "@/components/shared/record-activity";
 import { UserForm } from "@/components/users/user-form";
@@ -42,7 +43,14 @@ import { UserTransactions } from "@/components/users/user-transactions";
 export function UserDetail({ userId }: { userId: string }) {
   const router = useRouter();
   const [confirmOpen, setConfirmOpen] = React.useState(false);
-  const { data: user, isLoading, error, refetch } = useUserQuery(userId);
+  const {
+    data: user,
+    isLoading,
+    isFetching,
+    dataUpdatedAt,
+    error,
+    refetch,
+  } = useUserQuery(userId);
   const { data: me } = useAdminMeQuery();
   const deleteUser = useDeleteUserMutation();
 
@@ -88,10 +96,17 @@ export function UserDetail({ userId }: { userId: string }) {
             }
             description={user.email}
             actions={
-              <Button variant="destructive" onClick={() => setConfirmOpen(true)}>
-                <Trash2 />
-                Delete
-              </Button>
+              <>
+                <RefreshButton
+                  onRefresh={() => void refetch()}
+                  isRefreshing={isFetching}
+                  updatedAt={dataUpdatedAt}
+                />
+                <Button variant="destructive" onClick={() => setConfirmOpen(true)}>
+                  <Trash2 />
+                  Delete
+                </Button>
+              </>
             }
           />
 

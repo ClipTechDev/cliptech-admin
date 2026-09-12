@@ -5,6 +5,7 @@ import { serverFetch } from "@/lib/api-server";
 import { getQueryClient } from "@/lib/query-client";
 import { PageHeader } from "@/components/shared/page-header";
 import { AdminDashboard } from "@/components/dashboard/admin-dashboard";
+import { DashboardRefresh } from "@/components/dashboard/dashboard-refresh";
 
 /**
  * The landing screen, prefetched so the figures are in the first paint.
@@ -20,11 +21,12 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <PageHeader
-        title="Dashboard"
-        description="Where ClipTech stands right now — the queues waiting on someone, and the money behind them."
-      />
       <HydrationBoundary state={dehydrate(queryClient)}>
+        <PageHeader
+          title="Dashboard"
+          description="Where ClipTech stands right now — the queues waiting on someone, and the money behind them."
+          actions={<DashboardRefresh />}
+        />
         <AdminDashboard />
       </HydrationBoundary>
     </div>

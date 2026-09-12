@@ -41,7 +41,8 @@ export function WithdrawalsTable({
   onSelect: (id: string) => void;
 }) {
   const { params, setParams, reset } = useListParams(WITHDRAWAL_FILTER_KEYS);
-  const { data, isLoading, isFetching, error, refetch } = useWithdrawalsQuery(params);
+  const { data, isLoading, isFetching, dataUpdatedAt, error, refetch } =
+    useWithdrawalsQuery(params);
 
   const withdrawals = data?.withdrawals ?? [];
   const meta = data?.pagination;
@@ -86,6 +87,11 @@ export function WithdrawalsTable({
               from: params.from,
               to: params.to,
               onChange: (range) => setParams(range),
+            }}
+            refresh={{
+              onRefresh: () => void refetch(),
+              isRefreshing: isFetching,
+              updatedAt: dataUpdatedAt,
             }}
             isFiltered={hasFilters(params)}
             onReset={reset}

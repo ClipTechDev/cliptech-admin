@@ -105,3 +105,23 @@ export function formatDuration(ms: number | null | undefined): string {
   if (ms < 1000) return `${formatNumber(ms)} ms`;
   return formatInterval(ms / 1000);
 }
+
+export function formatAgo(
+  timestamp: number | null | undefined,
+  now: number = Date.now()
+): string | null {
+  if (timestamp === null || timestamp === undefined) return null;
+  if (!Number.isFinite(timestamp) || timestamp <= 0) return null;
+
+  const seconds = Math.max(0, Math.round((now - timestamp) / 1000));
+  if (seconds < 10) return "just now";
+  if (seconds < 60) return `${seconds}s ago`;
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+
+  return `${Math.floor(hours / 24)}d ago`;
+}

@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { QueryState } from "@/components/shared/query-state";
+import { RefreshButton } from "@/components/shared/refresh-button";
 import { SimplePagination } from "@/components/shared/simple-pagination";
 import { SnapshotEntries } from "@/components/campaigns/snapshot-entries";
 
@@ -32,7 +33,8 @@ import { SnapshotEntries } from "@/components/campaigns/snapshot-entries";
 export function CampaignSnapshots({ campaignId }: { campaignId: string }) {
   const [page, setPage] = React.useState(1);
   const [openSnapshot, setOpenSnapshot] = React.useState<Snapshot | null>(null);
-  const { data, isLoading, error, refetch } = useCampaignSnapshotsQuery(campaignId, page);
+  const { data, isLoading, isFetching, dataUpdatedAt, error, refetch } =
+    useCampaignSnapshotsQuery(campaignId, page);
 
   const snapshots = data?.snapshots ?? [];
   const meta = data?.pagination;
@@ -46,6 +48,13 @@ export function CampaignSnapshots({ campaignId }: { campaignId: string }) {
       onRetry={() => void refetch()}
     >
       <div className="space-y-4">
+        <div className="flex justify-end">
+          <RefreshButton
+            onRefresh={() => void refetch()}
+            isRefreshing={isFetching}
+            updatedAt={dataUpdatedAt}
+          />
+        </div>
         <div className="overflow-x-auto rounded-lg border">
           <Table>
             <TableHeader>

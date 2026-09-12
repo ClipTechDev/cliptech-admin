@@ -38,7 +38,8 @@ const deliveryOptions = DELIVERY_STATUSES.map((value) => ({
  */
 export function NotificationsTable({ onSelect }: { onSelect: (id: string) => void }) {
   const { params, setParams, reset } = useListParams(NOTIFICATION_FILTER_KEYS);
-  const { data, isLoading, isFetching, error, refetch } = useNotificationsQuery(params);
+  const { data, isLoading, isFetching, dataUpdatedAt, error, refetch } =
+    useNotificationsQuery(params);
 
   const notifications = data?.notifications ?? [];
   const meta = data?.pagination;
@@ -107,6 +108,11 @@ export function NotificationsTable({ onSelect }: { onSelect: (id: string) => voi
               from: params.from,
               to: params.to,
               onChange: (range) => setParams(range),
+            }}
+            refresh={{
+              onRefresh: () => void refetch(),
+              isRefreshing: isFetching,
+              updatedAt: dataUpdatedAt,
             }}
             isFiltered={hasFilters(params)}
             onReset={reset}

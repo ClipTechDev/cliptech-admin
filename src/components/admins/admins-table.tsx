@@ -23,7 +23,8 @@ const activeOptions = [
 export function AdminsTable() {
   const router = useRouter();
   const { params, setParams, reset } = useListParams(ADMIN_FILTER_KEYS);
-  const { data, isLoading, isFetching, error, refetch } = useAdminsQuery(params);
+  const { data, isLoading, isFetching, dataUpdatedAt, error, refetch } =
+    useAdminsQuery(params);
 
   const meta = data?.pagination;
 
@@ -66,6 +67,11 @@ export function AdminsTable() {
                 onChange: (is_active) => setParams({ filters: { is_active } }),
               },
             ]}
+            refresh={{
+              onRefresh: () => void refetch(),
+              isRefreshing: isFetching,
+              updatedAt: dataUpdatedAt,
+            }}
             isFiltered={hasFilters(params)}
             onReset={reset}
           >

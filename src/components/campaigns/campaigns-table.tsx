@@ -23,7 +23,8 @@ const options = (values: readonly string[]) =>
 export function CampaignsTable() {
   const router = useRouter();
   const { params, setParams, reset } = useListParams(CAMPAIGN_FILTER_KEYS);
-  const { data, isLoading, isFetching, error, refetch } = useCampaignsQuery(params);
+  const { data, isLoading, isFetching, dataUpdatedAt, error, refetch } =
+    useCampaignsQuery(params);
 
   const meta = data?.pagination;
 
@@ -70,6 +71,11 @@ export function CampaignsTable() {
               from: params.from,
               to: params.to,
               onChange: (range) => setParams(range),
+            }}
+            refresh={{
+              onRefresh: () => void refetch(),
+              isRefreshing: isFetching,
+              updatedAt: dataUpdatedAt,
             }}
             isFiltered={hasFilters(params)}
             onReset={reset}

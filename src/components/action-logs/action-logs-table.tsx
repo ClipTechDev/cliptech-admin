@@ -32,7 +32,8 @@ const actionOptions = ADMIN_ACTIONS.map((action) => ({
  */
 export function ActionLogsTable() {
   const { params, setParams, reset } = useListParams(ACTION_LOG_FILTER_KEYS);
-  const { data, isLoading, isFetching, error, refetch } = useActionLogsQuery(params);
+  const { data, isLoading, isFetching, dataUpdatedAt, error, refetch } =
+    useActionLogsQuery(params);
 
   const logs = data?.logs ?? [];
   const meta = data?.pagination;
@@ -100,6 +101,11 @@ export function ActionLogsTable() {
               from: params.from,
               to: params.to,
               onChange: (range) => setParams(range),
+            }}
+            refresh={{
+              onRefresh: () => void refetch(),
+              isRefreshing: isFetching,
+              updatedAt: dataUpdatedAt,
             }}
             isFiltered={hasFilters(params)}
             onReset={reset}

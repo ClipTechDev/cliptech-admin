@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DateRangePicker } from "@/components/ui/date-picker";
+import { RefreshButton } from "@/components/shared/refresh-button";
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 
 /** A dropdown filter, e.g. status. `value` of "" means "no filter". */
@@ -30,6 +31,12 @@ export type ToolbarFilter = {
    * ("All role"), so anything with an irregular plural passes its own.
    */
   allLabel?: string;
+};
+
+export type ToolbarRefresh = {
+  onRefresh: () => void;
+  isRefreshing?: boolean;
+  updatedAt?: number;
 };
 
 /** Server-side free-text search, debounced before it reaches `onChange`. */
@@ -53,6 +60,7 @@ interface DataTableToolbarProps<TData> {
     to: string;
     onChange: (range: { from?: string; to?: string }) => void;
   };
+  refresh?: ToolbarRefresh;
   /** Shown when anything is filtered; clears every control at once. */
   onReset?: () => void;
   isFiltered?: boolean;
@@ -74,6 +82,7 @@ export function DataTableToolbar<TData>({
   searchPlaceholder = "Search...",
   filters,
   dateRange,
+  refresh,
   onReset,
   isFiltered,
   children,
@@ -191,7 +200,14 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <div className="self-end sm:self-auto">
+      <div className="flex items-center gap-2 self-end sm:self-auto">
+        {refresh && (
+          <RefreshButton
+            onRefresh={refresh.onRefresh}
+            isRefreshing={refresh.isRefreshing}
+            updatedAt={refresh.updatedAt}
+          />
+        )}
         <DataTableViewOptions table={table} />
       </div>
     </div>

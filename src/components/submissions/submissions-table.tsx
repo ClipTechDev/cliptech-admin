@@ -47,7 +47,8 @@ export function SubmissionsTable({
     [params, campaignId]
   );
 
-  const { data, isLoading, isFetching, error, refetch } = useSubmissionsQuery(scoped);
+  const { data, isLoading, isFetching, dataUpdatedAt, error, refetch } =
+    useSubmissionsQuery(scoped);
   const submissions = data?.submissions ?? [];
   const meta = data?.pagination;
 
@@ -113,6 +114,11 @@ export function SubmissionsTable({
               from: params.from,
               to: params.to,
               onChange: (range) => setParams(range),
+            }}
+            refresh={{
+              onRefresh: () => void refetch(),
+              isRefreshing: isFetching,
+              updatedAt: dataUpdatedAt,
             }}
             isFiltered={hasFilters(params)}
             onReset={reset}

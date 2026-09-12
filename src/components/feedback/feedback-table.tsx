@@ -22,7 +22,8 @@ import { feedbackColumns } from "@/components/feedback/columns";
  */
 export function FeedbackTable({ onSelect }: { onSelect: (id: string) => void }) {
   const { params, setParams, reset } = useListParams(FEEDBACK_FILTER_KEYS);
-  const { data, isLoading, isFetching, error, refetch } = useFeedbackListQuery(params);
+  const { data, isLoading, isFetching, dataUpdatedAt, error, refetch } =
+    useFeedbackListQuery(params);
 
   const entries = data?.feedback ?? [];
   const meta = data?.pagination;
@@ -54,6 +55,11 @@ export function FeedbackTable({ onSelect }: { onSelect: (id: string) => void }) 
               from: params.from,
               to: params.to,
               onChange: (range) => setParams(range),
+            }}
+            refresh={{
+              onRefresh: () => void refetch(),
+              isRefreshing: isFetching,
+              updatedAt: dataUpdatedAt,
             }}
             isFiltered={hasFilters(params)}
             onReset={reset}

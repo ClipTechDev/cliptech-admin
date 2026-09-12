@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DetailList } from "@/components/shared/detail-list";
 import { PageHeader } from "@/components/shared/page-header";
 import { QueryState } from "@/components/shared/query-state";
+import { RefreshButton } from "@/components/shared/refresh-button";
 import { StatCard, StatGrid } from "@/components/shared/stat-card";
 import { CampaignBudget } from "@/components/campaigns/campaign-budget";
 import { CampaignForm } from "@/components/campaigns/campaign-form";
@@ -40,7 +41,14 @@ import { SubmissionsTable } from "@/components/submissions/submissions-table";
  * to "is this campaign healthy" and should never be a click away.
  */
 export function CampaignDetail({ campaignId }: { campaignId: string }) {
-  const { data: campaign, isLoading, error, refetch } = useCampaignQuery(campaignId);
+  const {
+    data: campaign,
+    isLoading,
+    isFetching,
+    dataUpdatedAt,
+    error,
+    refetch,
+  } = useCampaignQuery(campaignId);
 
   // The open submission lives in the URL, so a post under review can be
   // linked to a colleague without them having to hunt for it.
@@ -71,6 +79,11 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             }
             actions={
               <>
+                <RefreshButton
+                  onRefresh={() => void refetch()}
+                  isRefreshing={isFetching}
+                  updatedAt={dataUpdatedAt}
+                />
                 <Button
                   variant="outline"
                   render={
