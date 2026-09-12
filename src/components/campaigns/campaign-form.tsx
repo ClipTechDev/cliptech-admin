@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
 
-import { humanise, platformLabel } from "@/lib/format";
+import { formatCurrency, humanise, platformLabel } from "@/lib/format";
 import { errorMessage } from "@/components/shared/query-state";
 import {
   useCreateCampaignMutation,
@@ -15,6 +15,7 @@ import {
   useUpdateCampaignMutation,
 } from "@/hooks/use-campaigns";
 import {
+  campaignEditSchema,
   campaignFormDefaults,
   campaignFormDiff,
   campaignFormSchema,
@@ -63,8 +64,13 @@ export function CampaignForm({ campaign }: { campaign?: Campaign }) {
   const draft = !editing || isDraft(campaign);
   const frozen = editing && !draft;
 
+  const schema = React.useMemo(
+    () => (campaign ? campaignEditSchema(campaign) : campaignFormSchema),
+    [campaign]
+  );
+
   const form = useForm<CampaignFormValues>({
-    resolver: zodResolver(campaignFormSchema),
+    resolver: zodResolver(schema),
     defaultValues: campaignFormDefaults(campaign),
   });
 
@@ -337,14 +343,15 @@ export function CampaignForm({ campaign }: { campaign?: Campaign }) {
                       step="0.01"
                       // Once live the budget can only grow, and never below
                       // what has already been paid out.
-                      min={frozen ? campaign?.total_budget : 0}
+                      min={frozen ? campaign?.total_budget : (campaign?.spent_amount ?? 0)}
                       value={field.value}
                       onChange={(event) => field.onChange(event.target.valueAsNumber)}
                     />
                   </FormControl>
                   {frozen && (
                     <FormDescription>
-                      Can only be increased once a campaign has left draft.
+                      Can only be increased once a campaign has left draft — currently{" "}
+                      {formatCurrency(campaign?.total_budget)}.
                     </FormDescription>
                   )}
                   <FormMessage />

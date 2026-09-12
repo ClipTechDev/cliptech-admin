@@ -209,6 +209,21 @@ export const campaignFormSchema = z
 
 export type CampaignFormValues = z.infer<typeof campaignFormSchema>;
 
+export function campaignEditSchema(campaign: Campaign) {
+  return campaignFormSchema
+    .refine((values) => values.total_budget >= campaign.spent_amount, {
+      path: ["total_budget"],
+      message: "Cannot be less than what the campaign has already spent",
+    })
+    .refine(
+      (values) => isDraft(campaign) || values.total_budget >= campaign.total_budget,
+      {
+        path: ["total_budget"],
+        message: "Cannot be decreased once a campaign has left draft - only increased",
+      }
+    );
+}
+
 /** One link per line; blanks and duplicates dropped, as the API does. */
 export function splitLinks(value: string): string[] {
   const seen = new Set<string>();
@@ -362,7 +377,8 @@ export function campaignFormDiff(
 /**
  * Fields the API freezes once a campaign leaves draft (ErrFrozenField): the
  * terms creators already signed up to. The budget is separately restricted -
- * it may only grow - which the form enforces with a `min`, not by disabling.
+ * it may only grow - so it stays editable, with campaignEditSchema holding the
+ * floor under it rather than the input being disabled.
  */
 export const DRAFT_ONLY_FIELDS = ["cpm", "allowed_platforms", "starts_at"] as const;
 
