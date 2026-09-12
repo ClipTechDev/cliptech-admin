@@ -12,6 +12,7 @@ import type { CampaignStatus } from "@/schemas/campaign";
  */
 const variants: Record<CampaignStatus, "default" | "secondary" | "destructive" | "outline"> = {
   draft: "outline",
+  pending_approval: "secondary",
   active: "default",
   submissions_closed: "secondary",
   paused: "secondary",

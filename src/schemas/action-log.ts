@@ -9,8 +9,24 @@ import type { PageMeta } from "@/schemas/common";
  */
 
 /** Mirrors the admin_action enum in Postgres. */
-export const ADMIN_ACTIONS = ["created", "updated", "deleted"] as const;
+export const ADMIN_ACTIONS = [
+  "created",
+  "updated",
+  "deleted",
+  "approved",
+  "rejected",
+] as const;
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];
+
+export type ActionBadgeVariant = "default" | "secondary" | "destructive" | "outline";
+
+export const ACTION_BADGE_VARIANTS: Record<AdminAction, ActionBadgeVariant> = {
+  created: "default",
+  updated: "secondary",
+  deleted: "destructive",
+  approved: "default",
+  rejected: "destructive",
+};
 
 export type ActionLog = {
   id: string;

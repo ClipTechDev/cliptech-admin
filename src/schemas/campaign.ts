@@ -11,6 +11,7 @@ import { SOCIAL_PLATFORMS } from "@/schemas/social-account";
 
 export const CAMPAIGN_STATUSES = [
   "draft",
+  "pending_approval",
   "active",
   "submissions_closed",
   "paused",
@@ -57,6 +58,11 @@ export type Campaign = {
   accepts_submissions: boolean;
   cutoff_reached: boolean;
 
+  approved_by: string | null;
+  approved_at: string | null;
+  approved_budget: number | null;
+  needs_approval: boolean;
+
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -82,6 +88,20 @@ export function committed(campaign: Campaign): number {
 export function budgetUsedPercent(campaign: Campaign): number {
   if (campaign.total_budget <= 0) return 100;
   return Math.min((committed(campaign) / campaign.total_budget) * 100, 100);
+}
+
+export const APPROVAL_THRESHOLD = 10000;
+
+export function isAwaitingApproval(campaign?: Campaign): boolean {
+  return campaign?.status === "pending_approval";
+}
+
+export function budgetNeedsApproval(
+  budget: number,
+  approvedBudget: number | null
+): boolean {
+  if (budget <= APPROVAL_THRESHOLD) return false;
+  return approvedBudget === null || budget > approvedBudget;
 }
 
 /**

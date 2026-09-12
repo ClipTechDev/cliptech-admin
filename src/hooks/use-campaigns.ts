@@ -103,20 +103,28 @@ export function useCreateCampaignMutation() {
   });
 }
 
-export function useUpdateCampaignMutation(campaign: Campaign) {
+function useCampaignWrite<TVariables>(
+  id: string,
+  mutationFn: (variables: TVariables) => Promise<CampaignResponse>
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (values: CampaignFormValues) =>
-      clientFetch<CampaignResponse>(`/admin/campaigns/${campaign.id}`, {
-        method: "PATCH",
-        body: campaignFormDiff(values, campaign),
-      }),
-    onSuccess: (response) => {
-      queryClient.setQueryData(campaignsKeys.detail(campaign.id), response);
+    mutationFn,
+    onSuccess: (response: CampaignResponse) => {
+      queryClient.setQueryData(campaignsKeys.detail(id), response);
       queryClient.invalidateQueries({ queryKey: campaignsKeys.lists() });
     },
   });
+}
+
+export function useUpdateCampaignMutation(campaign: Campaign) {
+  return useCampaignWrite(campaign.id, (values: CampaignFormValues) =>
+    clientFetch<CampaignResponse>(`/admin/campaigns/${campaign.id}`, {
+      method: "PATCH",
+      body: campaignFormDiff(values, campaign),
+    })
+  );
 }
 
 /**
@@ -151,31 +159,29 @@ export function useSetCampaignBannerMutation() {
  * is why the detail cache is replaced from the response rather than patched.
  */
 export function useChangeCampaignStatusMutation(id: string) {
-  const queryClient = useQueryClient();
+  return useCampaignWrite(id, (status: CampaignStatus) =>
+    clientFetch<CampaignResponse>(`/admin/campaigns/${id}/status`, {
+      method: "PATCH",
+      body: { status },
+    })
+  );
+}
 
-  return useMutation({
-    mutationFn: (status: CampaignStatus) =>
-      clientFetch<CampaignResponse>(`/admin/campaigns/${id}/status`, {
-        method: "PATCH",
-        body: { status },
-      }),
-    onSuccess: (response) => {
-      queryClient.setQueryData(campaignsKeys.detail(id), response);
-      queryClient.invalidateQueries({ queryKey: campaignsKeys.lists() });
-    },
-  });
+function useCampaignActionMutation(id: string, action: "archive" | "approve" | "reject") {
+  return useCampaignWrite(id, () =>
+    clientFetch<CampaignResponse>(`/admin/campaigns/${id}/${action}`, { method: "POST" })
+  );
 }
 
 /** Only from completed: an ended campaign still owes its creators money. */
 export function useArchiveCampaignMutation(id: string) {
-  const queryClient = useQueryClient();
+  return useCampaignActionMutation(id, "archive");
+}
 
-  return useMutation({
-    mutationFn: () =>
-      clientFetch<CampaignResponse>(`/admin/campaigns/${id}/archive`, { method: "POST" }),
-    onSuccess: (response) => {
-      queryClient.setQueryData(campaignsKeys.detail(id), response);
-      queryClient.invalidateQueries({ queryKey: campaignsKeys.lists() });
-    },
-  });
+export function useApproveCampaignMutation(id: string) {
+  return useCampaignActionMutation(id, "approve");
+}
+
+export function useRejectCampaignMutation(id: string) {
+  return useCampaignActionMutation(id, "reject");
 }

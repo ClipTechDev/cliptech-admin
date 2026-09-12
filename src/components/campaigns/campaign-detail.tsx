@@ -22,6 +22,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { QueryState } from "@/components/shared/query-state";
 import { RefreshButton } from "@/components/shared/refresh-button";
 import { StatCard, StatGrid } from "@/components/shared/stat-card";
+import { CampaignApprovalNotice } from "@/components/campaigns/campaign-approval-notice";
 import { CampaignBudget } from "@/components/campaigns/campaign-budget";
 import { CampaignForm } from "@/components/campaigns/campaign-form";
 import { CampaignSnapshots } from "@/components/campaigns/campaign-snapshots";
@@ -106,6 +107,8 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               </>
             }
           />
+
+          <CampaignApprovalNotice campaign={campaign} />
 
           <Card>
             <CardContent className="pt-6">

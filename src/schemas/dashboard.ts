@@ -25,6 +25,7 @@ export type CampaignRollup = {
   remaining_budget: number;
   /** Not yet public. The API names this `draft` on the wire. */
   draft: number;
+  pending_approval: number;
 };
 
 export type SubmissionRollup = {

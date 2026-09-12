@@ -14,7 +14,11 @@ import {
   useSetCampaignBannerMutation,
   useUpdateCampaignMutation,
 } from "@/hooks/use-campaigns";
+import { useAdminMeQuery } from "@/hooks/use-admin";
+import { SUPER_ADMIN_ROLE } from "@/schemas/admin";
 import {
+  APPROVAL_THRESHOLD,
+  budgetNeedsApproval,
   campaignEditSchema,
   campaignFormDefaults,
   campaignFormDiff,
@@ -105,7 +109,13 @@ export function CampaignForm({ campaign }: { campaign?: Campaign }) {
     }
   }, [campaign, form]);
 
+  const { data: me } = useAdminMeQuery();
+  const isSuperAdmin = me?.roles.includes(SUPER_ADMIN_ROLE) ?? false;
+
   const values = form.watch();
+  const needsApproval =
+    !isSuperAdmin &&
+    budgetNeedsApproval(values.total_budget, campaign?.approved_budget ?? null);
   const hasChanges = campaign
     ? Object.keys(campaignFormDiff(values, campaign)).length > 0 || bannerPending
     : true;
@@ -354,6 +364,12 @@ export function CampaignForm({ campaign }: { campaign?: Campaign }) {
                       {formatCurrency(campaign?.total_budget)}.
                     </FormDescription>
                   )}
+                  {needsApproval && (
+                    <FormDescription className="text-foreground">
+                      Above {formatCurrency(APPROVAL_THRESHOLD)}, so a super admin has to
+                      approve it before the campaign can go live.
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -508,7 +524,7 @@ export function CampaignForm({ campaign }: { campaign?: Campaign }) {
                 disabled={pending}
                 onClick={form.handleSubmit((v) => onCreate(v, "active"))}
               >
-                Create and go live
+                {needsApproval ? "Create and send for approval" : "Create and go live"}
               </Button>
             </>
           )}

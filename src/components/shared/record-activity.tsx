@@ -12,18 +12,11 @@ import { emptyListParams } from "@/lib/list-params";
 import { actionLogsListOptions } from "@/hooks/use-action-logs";
 import { useAdminMeQuery } from "@/hooks/use-admin";
 import { SUPER_ADMIN_ROLE } from "@/schemas/admin";
-import type { AdminAction } from "@/schemas/action-log";
+import { ACTION_BADGE_VARIANTS } from "@/schemas/action-log";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { IdLink } from "@/components/shared/id-link";
-
-/** Same mapping the full action-log table uses, so a badge reads the same in both places. */
-const badgeVariant: Record<AdminAction, "default" | "secondary" | "destructive"> = {
-  created: "default",
-  updated: "secondary",
-  deleted: "destructive",
-};
 
 /**
  * The last few audit-log entries that mention this record, inline on its
@@ -94,7 +87,7 @@ export function RecordActivity({
           {logs.map((log) => (
             <li key={log.id} className="flex min-w-0 gap-3 text-sm">
               <Badge
-                variant={badgeVariant[log.action] ?? "secondary"}
+                variant={ACTION_BADGE_VARIANTS[log.action] ?? "secondary"}
                 className="mt-0.5 shrink-0"
               >
                 {humanise(log.action)}

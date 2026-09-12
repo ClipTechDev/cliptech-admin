@@ -3,16 +3,10 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { formatDateTime, humanise } from "@/lib/format";
-import type { ActionLog, AdminAction } from "@/schemas/action-log";
+import { ACTION_BADGE_VARIANTS, type ActionLog } from "@/schemas/action-log";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { IdLink } from "@/components/shared/id-link";
-
-const variants: Record<AdminAction, "default" | "secondary" | "destructive" | "outline"> = {
-  created: "default",
-  updated: "secondary",
-  deleted: "destructive",
-};
 
 /**
  * Columns for the audit trail.
@@ -36,7 +30,7 @@ export const actionLogColumns: ColumnDef<ActionLog>[] = [
     accessorKey: "action",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Action" />,
     cell: ({ row }) => (
-      <Badge variant={variants[row.original.action] ?? "secondary"}>
+      <Badge variant={ACTION_BADGE_VARIANTS[row.original.action] ?? "secondary"}>
         {humanise(row.original.action)}
       </Badge>
     ),

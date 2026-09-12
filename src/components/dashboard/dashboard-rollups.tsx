@@ -21,7 +21,9 @@ export function CampaignsRollup({ rollup }: { rollup: CampaignRollup }) {
       <StatCard
         label="Active"
         value={formatNumber(rollup.active)}
-        hint={`${formatNumber(rollup.draft)} draft, ${formatNumber(rollup.ended)} ended`}
+        hint={`${formatNumber(rollup.draft)} draft, ${formatNumber(
+          rollup.pending_approval
+        )} awaiting approval, ${formatNumber(rollup.ended)} ended`}
       />
       <StatCard
         label="Total budget"

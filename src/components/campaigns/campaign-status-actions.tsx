@@ -1,13 +1,20 @@
 "use client";
 
 import * as React from "react";
-import { Archive, ChevronDown } from "lucide-react";
+import { Archive, Check, ChevronDown, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { humanise } from "@/lib/format";
+import { formatCurrency, humanise } from "@/lib/format";
 import { errorMessage } from "@/components/shared/query-state";
-import { useArchiveCampaignMutation, useChangeCampaignStatusMutation } from "@/hooks/use-campaigns";
-import type { Campaign, CampaignStatus } from "@/schemas/campaign";
+import {
+  useApproveCampaignMutation,
+  useArchiveCampaignMutation,
+  useChangeCampaignStatusMutation,
+  useRejectCampaignMutation,
+} from "@/hooks/use-campaigns";
+import { useAdminMeQuery } from "@/hooks/use-admin";
+import { SUPER_ADMIN_ROLE } from "@/schemas/admin";
+import { isAwaitingApproval, type Campaign, type CampaignStatus } from "@/schemas/campaign";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -20,6 +27,8 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 /** What each move actually does, so nobody has to infer it from the verb. */
 const consequences: Partial<Record<CampaignStatus, string>> = {
   active: "Creators can find it and submit posts to it.",
+  pending_approval:
+    "Sends it to a super admin to sign off on the budget. Still hidden from creators.",
   paused: "Hidden from creators and taking no new posts. Approved posts keep tracking.",
   submissions_closed:
     "Stays visible and keeps tracking what is already in, but takes no new posts.",
@@ -40,23 +49,44 @@ const consequences: Partial<Record<CampaignStatus, string>> = {
 export function CampaignStatusActions({ campaign }: { campaign: Campaign }) {
   const [pendingStatus, setPendingStatus] = React.useState<CampaignStatus | null>(null);
   const [archiveOpen, setArchiveOpen] = React.useState(false);
+  const [approveOpen, setApproveOpen] = React.useState(false);
 
   const changeStatus = useChangeCampaignStatusMutation(campaign.id);
   const archive = useArchiveCampaignMutation(campaign.id);
+  const approve = useApproveCampaignMutation(campaign.id);
+  const reject = useRejectCampaignMutation(campaign.id);
+
+  const { data: me } = useAdminMeQuery();
+  const isSuperAdmin = me?.roles.includes(SUPER_ADMIN_ROLE) ?? false;
+  const awaitingApproval = isAwaitingApproval(campaign);
+
+  const canReview = awaitingApproval && isSuperAdmin;
 
   // Archiving has its own endpoint, so it is a button rather than one of the
   // menu's transitions even though the API lists it as one.
-  const transitions = campaign.next_statuses.filter((status) => status !== "archived");
+  const asButton: CampaignStatus[] = ["archived"];
+  if (awaitingApproval) asButton.push("active");
+  if (canReview) asButton.push("draft");
+
+  const transitions = campaign.next_statuses.filter((status) => !asButton.includes(status));
   const canArchive = campaign.next_statuses.includes("archived");
 
-  function apply(status: CampaignStatus) {
-    changeStatus.mutate(status, {
-      onSuccess: () => toast.success(`Campaign ${humanise(status).toLowerCase()}`),
-      onError: (error) => toast.error(errorMessage(error)),
-    });
+  function confirmed(action: Promise<unknown>, success: string) {
+    return action.then(
+      () => toast.success(success),
+      (error: unknown) => {
+        toast.error(errorMessage(error));
+        throw error;
+      }
+    );
   }
 
-  if (transitions.length === 0 && !canArchive) {
+  const toasted = (success: string) => ({
+    onSuccess: () => toast.success(success),
+    onError: (error: unknown) => toast.error(errorMessage(error)),
+  });
+
+  if (transitions.length === 0 && !canArchive && !canReview) {
     return null;
   }
 
@@ -78,7 +108,12 @@ export function CampaignStatusActions({ campaign }: { campaign: Campaign }) {
                 key={status}
                 variant={status === "ended" ? "destructive" : undefined}
                 onClick={() =>
-                  status === "ended" ? setPendingStatus(status) : apply(status)
+                  status === "ended"
+                    ? setPendingStatus(status)
+                    : changeStatus.mutate(
+                        status,
+                        toasted(`Campaign ${humanise(status).toLowerCase()}`)
+                      )
                 }
               >
                 <div className="min-w-0">
@@ -95,6 +130,23 @@ export function CampaignStatusActions({ campaign }: { campaign: Campaign }) {
         </DropdownMenu>
       )}
 
+      {canReview && (
+        <>
+          <Button onClick={() => setApproveOpen(true)} disabled={approve.isPending}>
+            <Check />
+            {approve.isPending ? "Approving…" : "Approve"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => reject.mutate(undefined, toasted("Campaign returned to draft"))}
+            disabled={reject.isPending}
+          >
+            <Undo2 />
+            {reject.isPending ? "Rejecting…" : "Send back to draft"}
+          </Button>
+        </>
+      )}
+
       {canArchive && (
         <Button variant="outline" onClick={() => setArchiveOpen(true)}>
           <Archive />
@@ -108,7 +160,17 @@ export function CampaignStatusActions({ campaign }: { campaign: Campaign }) {
         title={`End ${campaign.name}?`}
         description={consequences.ended}
         confirmLabel="End campaign"
-        onConfirm={() => apply("ended")}
+        onConfirm={() => changeStatus.mutate("ended", toasted("Campaign ended"))}
+      />
+
+      <ConfirmDialog
+        open={approveOpen}
+        onOpenChange={setApproveOpen}
+        title={`Approve ${campaign.name}?`}
+        description={`Signs off on a budget of ${formatCurrency(campaign.total_budget)} and takes the campaign live, so creators can start submitting posts to it.`}
+        confirmLabel="Approve and go live"
+        destructive={false}
+        onConfirm={() => confirmed(approve.mutateAsync(), "Campaign approved and live")}
       />
 
       <ConfirmDialog
@@ -118,15 +180,7 @@ export function CampaignStatusActions({ campaign }: { campaign: Campaign }) {
         description="Files it away from the working lists. Only a settled campaign can be archived, so nothing is still owed."
         confirmLabel="Archive"
         destructive={false}
-        onConfirm={() =>
-          archive.mutateAsync().then(
-            () => toast.success("Campaign archived"),
-            (error) => {
-              toast.error(errorMessage(error));
-              throw error;
-            }
-          )
-        }
+        onConfirm={() => confirmed(archive.mutateAsync(), "Campaign archived")}
       />
     </>
   );

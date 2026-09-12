@@ -2,6 +2,7 @@
 
 import { Banknote, FileVideo, Megaphone, Users } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { formatCurrency, formatNumber } from "@/lib/format";
 import { useAdminDashboardQuery } from "@/hooks/use-dashboard";
 import { openWithdrawals, type AdminDashboard as Overview } from "@/schemas/dashboard";
@@ -88,10 +89,25 @@ export function AdminDashboard() {
  * platform and into creators' balances.
  */
 function Queues({ overview }: { overview: Overview }) {
-  const { submissions, withdrawals, pending_earnings: pendingEarnings } = overview;
+  const { campaigns, submissions, withdrawals, pending_earnings: pendingEarnings } = overview;
+  const awaitingApproval = campaigns.pending_approval;
 
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div
+      className={cn(
+        "grid gap-3",
+        awaitingApproval > 0 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"
+      )}
+    >
+      {awaitingApproval > 0 && (
+        <QueueCard
+          label="Campaigns to approve"
+          value={formatNumber(awaitingApproval)}
+          hint="Budget over the limit, waiting on a super admin"
+          href="/campaigns?status=pending_approval"
+          urgent
+        />
+      )}
       <QueueCard
         label="Posts awaiting review"
         value={formatNumber(submissions.pending)}
