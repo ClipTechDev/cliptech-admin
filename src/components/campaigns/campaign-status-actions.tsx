@@ -33,8 +33,7 @@ const consequences: Partial<Record<CampaignStatus, string>> = {
   submissions_closed:
     "Stays visible and keeps tracking what is already in, but takes no new posts.",
   ended:
-    "Stops the campaign for good. It cannot be reopened, and settlement will credit whatever it still owes.",
-  completed: "Marks settlement finished.",
+    "Stops the campaign for good. It cannot be reopened. Earnings stay pending until you release them.",
 };
 
 /**

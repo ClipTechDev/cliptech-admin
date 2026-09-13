@@ -25,6 +25,7 @@ import { StatCard, StatGrid } from "@/components/shared/stat-card";
 import { CampaignApprovalNotice } from "@/components/campaigns/campaign-approval-notice";
 import { CampaignBudget } from "@/components/campaigns/campaign-budget";
 import { CampaignForm } from "@/components/campaigns/campaign-form";
+import { CampaignSettle } from "@/components/campaigns/campaign-settle";
 import { CampaignSnapshots } from "@/components/campaigns/campaign-snapshots";
 import { CampaignStatusActions } from "@/components/campaigns/campaign-status-actions";
 import { CampaignStatusBadge } from "@/components/campaigns/campaign-status-badge";
@@ -111,8 +112,11 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
           <CampaignApprovalNotice campaign={campaign} />
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="space-y-4 pt-6">
               <CampaignBudget campaign={campaign} />
+              <div className="border-t pt-4">
+                <CampaignSettle campaign={campaign} />
+              </div>
             </CardContent>
           </Card>
 

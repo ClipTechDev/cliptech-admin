@@ -58,6 +58,15 @@ export type Campaign = {
   accepts_submissions: boolean;
   cutoff_reached: boolean;
 
+  ended_at: string | null;
+  settled_at: string | null;
+  /**
+   * Whether an admin may release this campaign's accrued earnings now.
+   * Settlement is the only thing that credits creators, so this - not the
+   * status alone - drives the release control.
+   */
+  can_settle: boolean;
+
   approved_by: string | null;
   approved_at: string | null;
   approved_budget: number | null;

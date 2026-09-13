@@ -17,7 +17,8 @@ import type {
   CREATABLE_STATUSES,
 } from "@/schemas/campaign";
 import { campaignCreatePayload, campaignFormDiff } from "@/schemas/campaign";
-import type { SnapshotsResponse } from "@/schemas/payout";
+import type { SettleResponse, SnapshotsResponse } from "@/schemas/payout";
+import { snapshotsKeys } from "@/hooks/use-snapshots";
 
 /** The filters `/v1/admin/campaigns` accepts, alongside search and the dates. */
 export const CAMPAIGN_FILTER_KEYS = ["status", "platform"] as const;
@@ -184,4 +185,27 @@ export function useApproveCampaignMutation(id: string) {
 
 export function useRejectCampaignMutation(id: string) {
   return useCampaignActionMutation(id, "reject");
+}
+
+/**
+ * Releases an ended campaign's accrued earnings into creators' available
+ * balances, then retires the campaign.
+ *
+ * Not a `useCampaignWrite`: settlement answers with what it credited rather
+ * than with the campaign, so there is no fresh campaign to seed the cache
+ * with and the detail has to be refetched. It also moves money, so the
+ * creators' own ledgers and the snapshot list both go stale.
+ */
+export function useSettleCampaignMutation(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      clientFetch<SettleResponse>(`/admin/campaigns/${id}/settle`, { method: "POST" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: campaignsKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: campaignsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: snapshotsKeys.all });
+    },
+  });
 }

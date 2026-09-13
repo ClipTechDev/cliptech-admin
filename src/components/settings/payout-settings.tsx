@@ -34,7 +34,7 @@ export function PayoutSettingsFields({
           name="payout.settlement_grace"
           label="Settlement grace"
           fallback={defaults.payout.settlement_grace}
-          description="How long an ended campaign waits before its final settlement. This is the only window in which a bad submission can still be invalidated — afterwards the money is in creators' balances and the ledger is append-only."
+          description="No longer in effect. Settlement is now released by hand from the campaign page, so an ended campaign waits for an admin rather than for this timer — which also means the window to invalidate a bad submission is open until you release it."
         />
         <NumberField
           control={control}
@@ -42,7 +42,7 @@ export function PayoutSettingsFields({
           label="Batch limit"
           fallback={defaults.payout.batch_limit}
           max={MAX_BATCH_LIMIT}
-          description="Campaigns considered per crediting run."
+          description="Campaigns considered per lifecycle run — the pass that ends campaigns which have run past their end date or their budget."
         />
         <NumberField
           control={control}
@@ -68,11 +68,9 @@ export function PayoutSettingsFields({
               />
             </FormControl>
             <FormDescription>
-              The shares of budget at which creators are paid, ascending and ending at
-              100. They are crossing points, not targets: a campaign passes 25% somewhere
-              between two readings, and everything owed at that moment is credited.
-              Without a mark at 100, a campaign that spends its whole budget while still
-              running is never credited until it ends. Reverts to{" "}
+              No longer in effect. Creators are no longer paid part-way through a
+              campaign at these marks — everything a campaign owes is credited in one
+              go when an admin releases it. Reverts to{" "}
               <Fallback>{defaults.payout.snapshot_thresholds.join(", ")}</Fallback>.
             </FormDescription>
             <FormMessage />

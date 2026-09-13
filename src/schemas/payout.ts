@@ -63,3 +63,15 @@ export type SnapshotEntriesResponse = {
   entries: SnapshotEntry[];
   pagination: PageMeta;
 };
+
+/**
+ * What POST /admin/campaigns/:id/settle answers with. `snapshot` is absent
+ * when the campaign had nothing left to credit - settling still retires it.
+ */
+export type SettleResponse = {
+  success: boolean;
+  message: string;
+  credited: number;
+  submissions: number;
+  snapshot?: Snapshot;
+};
