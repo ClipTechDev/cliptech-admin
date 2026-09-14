@@ -85,6 +85,13 @@ export function WorkerSettingsFields({
         />
         <DurationField
           control={control}
+          name="worker.reverify_interval"
+          label="Re-verification interval"
+          fallback={defaults.worker.reverify_interval}
+          description="How often code-verified handles are re-checked against the account they were verified as."
+        />
+        <DurationField
+          control={control}
           name="worker.credit_interval"
           label="Credit interval"
           fallback={defaults.worker.credit_interval}

@@ -17,6 +17,7 @@ export type WorkerSettings = {
   tiktok_tracking_interval: string;
   youtube_tracking_interval: string;
   refresh_interval: string;
+  reverify_interval: string;
   credit_interval: string;
   /**
    * Read-only here: settings.WorkerPatch has no field for it, so the API
@@ -42,6 +43,7 @@ export type TrackingSettings = {
   instagram_refresh_window: string;
   tiktok_refresh_window: string;
   youtube_refresh_window: string;
+  code_reverify_window: string;
   instagram_resolve_pages: number;
 };
 
@@ -186,6 +188,7 @@ export const settingsFormSchema = z.object({
     tiktok_tracking_interval: duration,
     youtube_tracking_interval: duration,
     refresh_interval: duration,
+    reverify_interval: duration,
     credit_interval: duration,
     startup_delay: duration,
   }),
@@ -202,6 +205,7 @@ export const settingsFormSchema = z.object({
     instagram_refresh_window: duration,
     tiktok_refresh_window: duration,
     youtube_refresh_window: duration,
+    code_reverify_window: duration,
     instagram_resolve_pages: count("Resolve pages", MAX_RESOLVE_PAGES),
   }),
   payout: z.object({
@@ -227,6 +231,7 @@ export function settingsFormDefaults(settings: Settings): SettingsFormValues {
       tiktok_tracking_interval: settings.worker.tiktok_tracking_interval,
       youtube_tracking_interval: settings.worker.youtube_tracking_interval,
       refresh_interval: settings.worker.refresh_interval,
+      reverify_interval: settings.worker.reverify_interval,
       credit_interval: settings.worker.credit_interval,
       startup_delay: settings.worker.startup_delay,
     },

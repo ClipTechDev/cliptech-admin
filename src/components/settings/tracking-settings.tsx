@@ -110,8 +110,8 @@ export function TrackingSettingsFields({
       </DetailSection>
 
       <DetailSection
-        title="Token refresh windows"
-        description="How far ahead of expiry each platform's token is refreshed. Per-platform because the tokens are not one length: Instagram's lasts sixty days, TikTok's a day, Google's an hour."
+        title="Credential windows"
+        description="How far ahead of expiry each platform's token is refreshed — per-platform because the tokens are not one length: Instagram's lasts sixty days, TikTok's a day, Google's an hour. The last is not a token at all: it is how long a bio-code account goes before its handle is re-checked."
       >
         <Grid>
           <DurationField
@@ -131,6 +131,12 @@ export function TrackingSettingsFields({
             name="tracking.youtube_refresh_window"
             label="YouTube"
             fallback={defaults.tracking.youtube_refresh_window}
+          />
+          <DurationField
+            control={control}
+            name="tracking.code_reverify_window"
+            label="Code re-verification window"
+            fallback={defaults.tracking.code_reverify_window}
           />
           <NumberField
             control={control}
