@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  BadgeCheck,
   Banknote,
   Download,
   FileVideo,
@@ -75,6 +76,7 @@ const navGroups: NavGroup[] = [
     label: "People",
     items: [
       { title: "Users", url: "/users", icon: Users, role: USERS_ROLE },
+      { title: "Verifications", url: "/social-claims", icon: BadgeCheck, role: USERS_ROLE },
       { title: "Feedback", url: "/feedback", icon: MessageSquareWarning, role: "feedback" },
     ],
   },
