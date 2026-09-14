@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, Clock, PlugZap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDateTime, formatNumber, platformLabel } from "@/lib/format";
 import {
+  missingRoute,
   platformHealthState,
   type PlatformHealth,
   type PlatformHealthState,
@@ -15,13 +16,15 @@ const state: Record<
   { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
 > = {
   unconfigured: { label: "Not configured", variant: "outline" },
+  partial: { label: "One route only", variant: "secondary" },
   failing: { label: "Auth failing", variant: "destructive" },
-  degraded: { label: "Tokens expired", variant: "destructive" },
+  degraded: { label: "Needs attention", variant: "destructive" },
   ok: { label: "Healthy", variant: "default" },
 };
 
 const icons: Record<PlatformHealthState, typeof CheckCircle2> = {
   unconfigured: PlugZap,
+  partial: PlugZap,
   failing: AlertTriangle,
   degraded: Clock,
   ok: CheckCircle2,
@@ -58,6 +61,7 @@ export function PlatformHealthCard({ row }: { row: PlatformHealth }) {
   const health = platformHealthState(row);
   const { label, variant } = state[health];
   const Icon = icons[health];
+  const detail = missingRoute(row);
 
   return (
     <Card>
@@ -71,9 +75,7 @@ export function PlatformHealthCard({ row }: { row: PlatformHealth }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {row.config_detail && (
-          <p className="text-muted-foreground text-sm break-words">{row.config_detail}</p>
-        )}
+        {detail && <p className="text-muted-foreground text-sm break-words">{detail}</p>}
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
           <Figure label="Connected" value={row.connected} />
@@ -84,9 +86,20 @@ export function PlatformHealthCard({ row }: { row: PlatformHealth }) {
           <Figure label="Total" value={row.total} />
         </div>
 
-        <p className="text-muted-foreground text-xs">
-          Last auth failure: {formatDateTime(row.last_failure_at)}
-        </p>
+        {row.code_supported && (
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3 border-t pt-4 sm:grid-cols-3">
+            <Figure label="By OAuth" value={row.oauth_connected} />
+            <Figure label="By bio code" value={row.code_connected} />
+            <Figure label="Re-check overdue" value={row.stale_verification} alert />
+          </div>
+        )}
+
+        <div className="text-muted-foreground space-y-1 text-xs">
+          <p>Last auth failure: {formatDateTime(row.last_failure_at)}</p>
+          {row.code_supported && (
+            <p>Last re-verification: {formatDateTime(row.last_verification_at)}</p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

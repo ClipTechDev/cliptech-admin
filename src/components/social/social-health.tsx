@@ -7,7 +7,7 @@ import { QueryState } from "@/components/shared/query-state";
 import { PlatformHealthCard } from "@/components/social/platform-health-card";
 
 /**
- * OAuth standing of every platform integration, polled every sixty seconds -
+ * The standing of every platform integration, polled every sixty seconds -
  * a screen you must reload to see a token expire is not a monitor.
  */
 export function SocialHealthPanel() {
