@@ -82,7 +82,7 @@ export function LoginForm() {
                       type="email"
                       autoComplete="username"
                       autoFocus
-                      placeholder="you@cliptech.com"
+                      placeholder="you@cliptech.io"
                       {...field}
                     />
                   </FormControl>

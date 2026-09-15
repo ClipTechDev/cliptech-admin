@@ -320,7 +320,7 @@ function IdentityFields({
           <FormItem>
             <FormLabel>Email</FormLabel>
             <FormControl>
-              <Input type="email" placeholder="jane@cliptech.com" {...field} />
+              <Input type="email" placeholder="jane@cliptech.io" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
