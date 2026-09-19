@@ -129,7 +129,7 @@ export function useSubmissionUsers(userIds: string[]) {
 }
 
 /**
- * The four review actions. Each returns the updated submission, so the detail
+ * The five review actions. Each returns the updated submission, so the detail
  * cache is written from the response and every submissions listing plus the
  * campaign (whose accrued total moves with it) is invalidated.
  */
@@ -154,6 +154,10 @@ function useSubmissionAction<TBody>(
       }
     },
   });
+}
+
+export function useApproveSubmission(id: string, campaignId?: string) {
+  return useSubmissionAction<never>(id, "approve", campaignId);
 }
 
 export function useUnflagSubmission(id: string, campaignId?: string) {

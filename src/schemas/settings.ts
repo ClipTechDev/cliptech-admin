@@ -55,10 +55,15 @@ export type PayoutSettings = {
   minimum_withdrawal: number;
 };
 
+export type SubmissionSettings = {
+  auto_approve: boolean;
+};
+
 export type Settings = {
   worker: WorkerSettings;
   tracking: TrackingSettings;
   payout: PayoutSettings;
+  submissions: SubmissionSettings;
 };
 
 export type SettingsResponse = {
@@ -226,6 +231,9 @@ export const settingsFormSchema = z.object({
     snapshot_thresholds: thresholds,
     minimum_withdrawal: minimumWithdrawal,
   }),
+  submissions: z.object({
+    auto_approve: z.boolean(),
+  }),
 });
 
 /**
@@ -255,6 +263,9 @@ export function settingsFormDefaults(settings: Settings): SettingsFormValues {
       snapshot_thresholds: settings.payout.snapshot_thresholds.join(", "),
       minimum_withdrawal: settings.payout.minimum_withdrawal,
     },
+    submissions: {
+      auto_approve: settings.submissions.auto_approve,
+    },
   };
 }
 
@@ -278,6 +289,9 @@ export function settingsFormDiff(
 
   const tracking = changedFields(values.tracking, current.tracking);
   if (tracking) patch.tracking = tracking;
+
+  const submissions = changedFields(values.submissions, current.submissions);
+  if (submissions) patch.submissions = submissions;
 
   // Thresholds are held apart from the rest of the section: they are a string
   // in the form and an int array on the wire, so they cannot be compared or

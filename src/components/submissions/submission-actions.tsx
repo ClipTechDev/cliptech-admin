@@ -4,9 +4,9 @@ import * as React from "react";
 import { CheckCircle2, Flag, Slash, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { humanise } from "@/lib/format";
 import { errorMessage } from "@/components/shared/query-state";
 import {
+  useApproveSubmission,
   useFlagSubmission,
   useInvalidateSubmission,
   useRejectSubmission,
@@ -14,6 +14,9 @@ import {
 } from "@/hooks/use-submissions";
 import {
   INVALID_REASONS,
+  SUBMISSION_STATUS_LABELS,
+  canApprove,
+  issueLabel,
   canFlag,
   canInvalidate,
   canReject,
@@ -26,29 +29,72 @@ import { PromptDialog } from "@/components/shared/prompt-dialog";
 export function SubmissionActions({ submission }: { submission: Submission }) {
   const [dialog, setDialog] = React.useState<"reject" | "invalidate" | "flag" | null>(null);
 
+  const approve = useApproveSubmission(submission.id, submission.campaign_id);
   const unflag = useUnflagSubmission(submission.id, submission.campaign_id);
   const reject = useRejectSubmission(submission.id, submission.campaign_id);
   const flag = useFlagSubmission(submission.id, submission.campaign_id);
   const invalidate = useInvalidateSubmission(submission.id, submission.campaign_id);
 
+  const approvable = canApprove(submission);
   const rejectable = canReject(submission);
   const flaggable = canFlag(submission);
   const unflaggable = canUnflag(submission);
   const invalidatable = canInvalidate(submission);
-  const busy = unflag.isPending || reject.isPending || flag.isPending || invalidate.isPending;
+  const busy =
+    approve.isPending ||
+    unflag.isPending ||
+    reject.isPending ||
+    flag.isPending ||
+    invalidate.isPending;
 
-  if (!rejectable && !flaggable && !unflaggable && !invalidatable) {
+  if (!approvable && !rejectable && !flaggable && !unflaggable && !invalidatable) {
     return (
       <p className="text-muted-foreground text-sm">
-        No actions available — a {humanise(submission.status).toLowerCase()} submission is
-        final.
+        No actions available — a {SUBMISSION_STATUS_LABELS[submission.status].toLowerCase()}{" "}
+        submission is final.
       </p>
     );
   }
 
   return (
     <>
+      {approvable && (
+        <p className="text-muted-foreground mb-2 text-sm">
+          This clip passed the automatic checks. Open the post and check it follows the
+          campaign brief, then approve it to start tracking views or reject it with a reason.
+          Views since it was submitted still count once it is approved.
+        </p>
+      )}
+      {submission.status === "pending" && submission.issues.length > 0 && (
+        <div className="border-destructive/30 bg-destructive/5 mb-2 space-y-1 rounded-lg border p-3 text-sm">
+          <p className="font-medium">This clip failed the automatic checks</p>
+          <ul className="text-muted-foreground list-disc space-y-0.5 pl-5">
+            {submission.issues.map((issue) => (
+              <li key={`${issue.code}-${issue.detail ?? ""}`}>{issueLabel(issue)}</li>
+            ))}
+          </ul>
+          <p className="text-muted-foreground">
+            It can&apos;t be approved until this is fixed. Reject it with a reason, or leave it
+            here — the creator can fix the post and re-run the checks.
+          </p>
+        </div>
+      )}
       <div className="flex flex-wrap gap-2">
+        {approvable && (
+          <Button
+            size="sm"
+            disabled={busy}
+            onClick={() =>
+              approve.mutate(undefined, {
+                onSuccess: () => toast.success("Clip approved — tracking has started"),
+                onError: (error) => toast.error(errorMessage(error)),
+              })
+            }
+          >
+            <CheckCircle2 />
+            Approve
+          </Button>
+        )}
         {unflaggable && (
           <Button
             size="sm"

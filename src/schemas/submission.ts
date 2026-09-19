@@ -7,6 +7,7 @@ import type { SocialPlatform } from "@/schemas/social-account";
  */
 
 export const SUBMISSION_STATUSES = [
+  "pending",
   "approved",
   "rejected",
   "flagged",
@@ -14,6 +15,14 @@ export const SUBMISSION_STATUSES = [
 ] as const;
 
 export type SubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
+
+export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
+  pending: "Awaiting review",
+  approved: "Approved",
+  rejected: "Rejected",
+  flagged: "Flagged",
+  invalidated: "Invalidated",
+};
 
 /**
  * Where a post's money has got to. A different axis from status: an approved
@@ -118,7 +127,22 @@ export const SUBMISSION_ISSUE_CODES = [
   "post_unreadable",
   "not_post_owner",
   "missing_hashtags",
+  "views_unavailable",
 ] as const;
+
+const ISSUE_LABELS: Record<SubmissionIssueCode, string> = {
+  account_disconnected: "The creator has no connected account on this platform",
+  tracking_unavailable: "We can't track posts on this platform right now",
+  post_unreadable: "We couldn't open the post - it may be deleted or private",
+  not_post_owner: "The post isn't on any of the creator's connected accounts",
+  missing_hashtags: "Required hashtags are missing from the caption",
+  views_unavailable: "The post doesn't report views (e.g. a photo, not a video)",
+};
+
+export function issueLabel(issue: SubmissionIssue): string {
+  const label = ISSUE_LABELS[issue.code as SubmissionIssueCode] ?? issue.code;
+  return issue.detail ? `${label}: ${issue.detail}` : label;
+}
 
 export type SubmissionIssueCode = (typeof SUBMISSION_ISSUE_CODES)[number];
 
@@ -127,8 +151,16 @@ export type SubmissionIssue = {
   detail?: string;
 };
 
+export function canApprove(submission: Submission): boolean {
+  return submission.status === "pending" && submission.issues.length === 0;
+}
+
 export function canReject(submission: Submission): boolean {
-  return submission.status === "approved" || submission.status === "flagged";
+  return (
+    submission.status === "pending" ||
+    submission.status === "approved" ||
+    submission.status === "flagged"
+  );
 }
 
 export function canFlag(submission: Submission): boolean {

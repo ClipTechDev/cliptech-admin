@@ -113,8 +113,8 @@ function Queues({ overview }: { overview: Overview }) {
         value={formatNumber(submissions.pending)}
         hint={
           submissions.pending === 0
-            ? "Nothing in the queue"
-            : "Not yet approved or rejected"
+            ? "No new clips to check"
+            : "New clips waiting for you to approve or reject"
         }
         href="/submissions?status=pending"
         urgent={submissions.pending > 0}

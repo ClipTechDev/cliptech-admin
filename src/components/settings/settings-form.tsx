@@ -23,6 +23,7 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { DetailList } from "@/components/shared/detail-list";
 import { QueryState } from "@/components/shared/query-state";
 import { PayoutSettingsFields } from "@/components/settings/payout-settings";
+import { SubmissionSettingsFields } from "@/components/settings/submission-settings";
 import { TrackingSettingsFields } from "@/components/settings/tracking-settings";
 import { WorkerSettingsFields } from "@/components/settings/worker-settings";
 
@@ -147,6 +148,7 @@ function SettingsFields({
                 <TabsTrigger value="worker">Scheduler</TabsTrigger>
                 <TabsTrigger value="tracking">Tracking</TabsTrigger>
                 <TabsTrigger value="payout">Payouts</TabsTrigger>
+                <TabsTrigger value="submissions">Submissions</TabsTrigger>
                 <TabsTrigger value="about">About</TabsTrigger>
               </TabsList>
             </div>
@@ -165,6 +167,10 @@ function SettingsFields({
 
             <TabsContent value="payout" className="min-w-0 pt-4">
               <PayoutSettingsFields control={form.control} defaults={defaults} />
+            </TabsContent>
+
+            <TabsContent value="submissions" className="min-w-0 pt-4">
+              <SubmissionSettingsFields control={form.control} />
             </TabsContent>
 
             <TabsContent value="about" className="min-w-0 pt-4">

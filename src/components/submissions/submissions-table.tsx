@@ -10,7 +10,11 @@ import {
 } from "@/hooks/use-submissions";
 import { isFiltered as hasFilters, type ListParams } from "@/lib/list-params";
 import { humanise, platformLabel } from "@/lib/format";
-import { PAYMENT_STATUSES, SUBMISSION_STATUSES } from "@/schemas/submission";
+import {
+  PAYMENT_STATUSES,
+  SUBMISSION_STATUSES,
+  SUBMISSION_STATUS_LABELS,
+} from "@/schemas/submission";
 import { SOCIAL_PLATFORMS } from "@/schemas/social-account";
 import { DataTable } from "@/components/data-table/data-table";
 import { serverPaginationFor } from "@/components/data-table/server-pagination";
@@ -90,7 +94,10 @@ export function SubmissionsTable({
                 label: "Status",
                 allLabel: "All statuses",
                 value: params.filters.status ?? "",
-                options: options(SUBMISSION_STATUSES),
+                options: SUBMISSION_STATUSES.map((value) => ({
+                  value,
+                  label: SUBMISSION_STATUS_LABELS[value],
+                })),
                 onChange: (status) => setParams({ filters: { status } }),
               },
               {
