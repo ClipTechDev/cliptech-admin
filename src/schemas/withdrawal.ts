@@ -19,7 +19,7 @@ export const WITHDRAWAL_STATUSES = [
 export type WithdrawalStatus = (typeof WITHDRAWAL_STATUSES)[number];
 
 /** Mirrors `allowed_withdrawal_methods` in cliptech-api's config.yaml. */
-export const WITHDRAWAL_METHODS = ["upi", "bank_transfer", "paypal"] as const;
+export const WITHDRAWAL_METHODS = ["paypal", "crypto"] as const;
 
 export type Withdrawal = {
   id: string;

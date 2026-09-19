@@ -110,6 +110,12 @@ function PayoutDetails({ withdrawal }: { withdrawal: Withdrawal }) {
   );
 }
 
+const REASON_LABELS: Partial<Record<Withdrawal["status"], string>> = {
+  rejected: "Rejection reason",
+  failed: "Failure reason",
+  cancelled: "Cancellation reason",
+};
+
 function RequestMeta({ withdrawal }: { withdrawal: Withdrawal }) {
   return (
     <DetailList
@@ -135,9 +141,10 @@ function RequestMeta({ withdrawal }: { withdrawal: Withdrawal }) {
         ...(withdrawal.failure_reason
           ? [
               {
-                // The same column carries a rejection and a failed transfer,
-                // and they mean different things to whoever reads this later.
-                label: withdrawal.status === "rejected" ? "Rejection reason" : "Failure reason",
+                // The same column carries a rejection, a failed transfer and a
+                // cancellation, and they mean different things to whoever reads
+                // this later.
+                label: REASON_LABELS[withdrawal.status] ?? "Reason",
                 value: withdrawal.failure_reason,
                 wide: true,
               },

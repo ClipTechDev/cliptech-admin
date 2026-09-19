@@ -1,13 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { Banknote, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { Ban, Banknote, CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { formatCurrency, humanise } from "@/lib/format";
 import { errorMessage } from "@/components/shared/query-state";
 import {
   useApproveWithdrawal,
+  useCancelWithdrawal,
   useMarkWithdrawalFailed,
   useMarkWithdrawalPaid,
   useProcessingWithdrawal,
@@ -23,7 +24,7 @@ type SubmitHandlers = { onSuccess: () => void; onError: (error: unknown) => void
 /**
  * One prompted transition, described rather than hand-written.
  *
- * The four are the same shape - a target state, a dialog, a mutation, a toast
+ * The five are the same shape - a target state, a dialog, a mutation, a toast
  * - so they are data walked by one renderer below. Written out as four JSX
  * blocks they came to 200 lines in which the only real differences, the
  * wording and whether a reason is required, were buried in the repetition.
@@ -52,7 +53,7 @@ type Prompt = {
 };
 
 /**
- * The five moves an admin can make on a payout request.
+ * The six moves an admin can make on a payout request.
  *
  * Which are offered comes from the `next_statuses` the API sent with the
  * record, not from a copy of its transition map kept here - so a button
@@ -60,7 +61,7 @@ type Prompt = {
  * changed on the server does not leave this file quietly wrong.
  *
  * Only "processing" is a bare click: it records that a transfer was started
- * and there is nothing else to say about it. The other four collect a note, a
+ * and there is nothing else to say about it. The other five collect a note, a
  * reference or a reason first.
  */
 export function WithdrawalActions({ withdrawal }: { withdrawal: Withdrawal }) {
@@ -72,19 +73,21 @@ export function WithdrawalActions({ withdrawal }: { withdrawal: Withdrawal }) {
   const reject = useRejectWithdrawal(withdrawal.id, userId);
   const paid = useMarkWithdrawalPaid(withdrawal.id, userId);
   const failed = useMarkWithdrawalFailed(withdrawal.id, userId);
+  const cancel = useCancelWithdrawal(withdrawal.id, userId);
 
   const busy =
     approve.isPending ||
     processing.isPending ||
     reject.isPending ||
     paid.isPending ||
-    failed.isPending;
+    failed.isPending ||
+    cancel.isPending;
 
   const amount = formatCurrency(withdrawal.amount);
 
   // Every description says what happens to the money, because that is what
-  // differs between these four and what an admin needs to be sure of before
-  // clicking: reject and fail return the balance, paid does not.
+  // differs between these five and what an admin needs to be sure of before
+  // clicking: reject, fail and cancel return the balance, paid does not.
   const prompts: Prompt[] = [
     {
       target: "approved",
@@ -147,6 +150,22 @@ export function WithdrawalActions({ withdrawal }: { withdrawal: Withdrawal }) {
       success: "Marked failed — balance returned",
       isPending: failed.isPending,
       submit: (reason, handlers) => failed.mutate({ reason }, handlers),
+    },
+    {
+      target: "cancelled",
+      icon: Ban,
+      buttonLabel: "Cancel",
+      confirmLabel: "Cancel and refund",
+      title: "Cancel this request?",
+      description: `${amount} goes straight back to the creator's available balance. Make sure no transfer has been sent. The reason is shown to the creator.`,
+      fieldLabel: "Reason",
+      placeholder: "Why is this being cancelled?",
+      multiline: true,
+      required: true,
+      destructive: true,
+      success: "Cancelled — balance returned",
+      isPending: cancel.isPending,
+      submit: (reason, handlers) => cancel.mutate({ reason }, handlers),
     },
   ];
 

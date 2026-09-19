@@ -52,7 +52,7 @@ export function useWithdrawalQuery(id: string | null) {
 }
 
 /**
- * The five transitions an admin can make, all PATCH, all returning the
+ * The six transitions an admin can make, all PATCH, all returning the
  * updated request.
  *
  * Every one of them moves money or the promise of it, so each success writes
@@ -103,4 +103,8 @@ export function useMarkWithdrawalPaid(id: string, userId?: string) {
 /** Also refunds the balance - a failed transfer is money that never left. */
 export function useMarkWithdrawalFailed(id: string, userId?: string) {
   return useWithdrawalAction<{ reason: string }>(id, "fail", userId);
+}
+
+export function useCancelWithdrawal(id: string, userId?: string) {
+  return useWithdrawalAction<{ reason: string }>(id, "cancel", userId);
 }

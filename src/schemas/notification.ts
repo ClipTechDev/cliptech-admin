@@ -22,6 +22,7 @@ export const NOTIFICATION_TYPES = [
   "withdrawal_paid",
   "withdrawal_rejected",
   "withdrawal_failed",
+  "withdrawal_cancelled",
   "social_account_disconnected",
   "social_account_auth_failed",
   "account_suspended",
