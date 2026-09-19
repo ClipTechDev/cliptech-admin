@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Ban, Banknote, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { Ban, Banknote, CheckCircle2, Send, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { formatCurrency, humanise } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 import { errorMessage } from "@/components/shared/query-state";
 import {
   useApproveWithdrawal,
@@ -14,7 +14,12 @@ import {
   useProcessingWithdrawal,
   useRejectWithdrawal,
 } from "@/hooks/use-withdrawals";
-import { canBecome, type Withdrawal, type WithdrawalStatus } from "@/schemas/withdrawal";
+import {
+  canBecome,
+  WITHDRAWAL_STATUS_LABELS,
+  type Withdrawal,
+  type WithdrawalStatus,
+} from "@/schemas/withdrawal";
 import { Button } from "@/components/ui/button";
 import { PromptDialog } from "@/components/shared/prompt-dialog";
 
@@ -96,8 +101,8 @@ export function WithdrawalActions({ withdrawal }: { withdrawal: Withdrawal }) {
       confirmLabel: "Approve",
       title: `Approve ${amount}?`,
       description:
-        "Clears the request for payment. The money has already left the creator's balance — approving does not send it, it says the transfer may be made.",
-      fieldLabel: "Internal note",
+        "This says the request is fine to pay. It does not send any money — you do that next, then come back and click Mark as paid.",
+      fieldLabel: "Note for other admins (optional, creator won't see it)",
       placeholder: "Anything the next admin should know",
       multiline: true,
       success: "Withdrawal approved",
@@ -107,13 +112,13 @@ export function WithdrawalActions({ withdrawal }: { withdrawal: Withdrawal }) {
     {
       target: "paid",
       icon: Banknote,
-      buttonLabel: "Mark paid",
-      confirmLabel: "Mark paid",
-      title: `Record ${amount} as paid?`,
+      buttonLabel: "Mark as paid",
+      confirmLabel: "Yes, it's paid",
+      title: `Have you sent ${amount}?`,
       description:
-        "The end of the manual flow: you have made the transfer and are recording it. This is final and does not return the balance.",
-      fieldLabel: "Provider reference",
-      placeholder: "Transaction id from the bank or wallet",
+        "Only click this once the money has actually been sent. It can't be undone.",
+      fieldLabel: "Transaction ID (optional, the creator will see it)",
+      placeholder: "From PayPal or the wallet, e.g. 5TY12345AB678901C",
       success: "Withdrawal marked paid",
       isPending: paid.isPending,
       submit: (reference, handlers) =>
@@ -125,8 +130,8 @@ export function WithdrawalActions({ withdrawal }: { withdrawal: Withdrawal }) {
       buttonLabel: "Reject",
       confirmLabel: "Reject and refund",
       title: "Reject this request?",
-      description: `${amount} goes straight back to the creator's available balance. The reason is stored on the request.`,
-      fieldLabel: "Reason",
+      description: `No money is sent. ${amount} goes back to the creator's balance.`,
+      fieldLabel: "Reason (the creator will see this)",
       placeholder: "Why is this being refused?",
       multiline: true,
       required: true,
@@ -138,11 +143,11 @@ export function WithdrawalActions({ withdrawal }: { withdrawal: Withdrawal }) {
     {
       target: "failed",
       icon: XCircle,
-      buttonLabel: "Mark failed",
-      confirmLabel: "Mark failed",
-      title: "Mark this transfer as failed?",
-      description: `For a transfer that was attempted and did not land. ${amount} is returned to the creator's balance so they can request it again.`,
-      fieldLabel: "What went wrong",
+      buttonLabel: "Payment failed",
+      confirmLabel: "Mark as failed",
+      title: "Did the payment fail?",
+      description: `Use this if you tried to send the money and it didn't arrive or came back. ${amount} goes back to the creator's balance so they can ask again.`,
+      fieldLabel: "What went wrong (the creator will see this)",
       placeholder: "Bounced, wrong account details, provider error...",
       multiline: true,
       required: true,
@@ -157,8 +162,8 @@ export function WithdrawalActions({ withdrawal }: { withdrawal: Withdrawal }) {
       buttonLabel: "Cancel",
       confirmLabel: "Cancel and refund",
       title: "Cancel this request?",
-      description: `${amount} goes straight back to the creator's available balance. Make sure no transfer has been sent. The reason is shown to the creator.`,
-      fieldLabel: "Reason",
+      description: `Only do this if you have not sent any money. ${amount} goes back to the creator's balance.`,
+      fieldLabel: "Reason (the creator will see this)",
       placeholder: "Why is this being cancelled?",
       multiline: true,
       required: true,
@@ -172,7 +177,7 @@ export function WithdrawalActions({ withdrawal }: { withdrawal: Withdrawal }) {
   if (withdrawal.next_statuses.length === 0) {
     return (
       <p className="text-muted-foreground text-sm">
-        No actions available — a {humanise(withdrawal.status).toLowerCase()} request is final.
+        Nothing more to do — this request is {WITHDRAWAL_STATUS_LABELS[withdrawal.status].toLowerCase()}.
       </p>
     );
   }
@@ -182,18 +187,16 @@ export function WithdrawalActions({ withdrawal }: { withdrawal: Withdrawal }) {
   return (
     <>
       <div className="flex flex-wrap gap-2">
-        {available.map((prompt) => (
-          <Button
-            key={prompt.target}
-            size="sm"
-            variant={prompt.destructive ? "destructive" : "default"}
-            disabled={busy}
-            onClick={() => setOpen(prompt.target)}
-          >
-            <prompt.icon />
-            {prompt.buttonLabel}
-          </Button>
-        ))}
+        {available
+          .filter((prompt) => !prompt.destructive)
+          .map((prompt) => (
+            <PromptButton
+              key={prompt.target}
+              prompt={prompt}
+              disabled={busy}
+              onClick={() => setOpen(prompt.target)}
+            />
+          ))}
 
         {/* The one transition with nothing to collect, so it stays a button
             rather than being forced through a dialog for symmetry. */}
@@ -204,15 +207,26 @@ export function WithdrawalActions({ withdrawal }: { withdrawal: Withdrawal }) {
             disabled={busy}
             onClick={() =>
               processing.mutate(undefined, {
-                onSuccess: () => toast.success("Marked as processing"),
+                onSuccess: () => toast.success("Marked as sending"),
                 onError: (error) => toast.error(errorMessage(error)),
               })
             }
           >
-            <Loader2 />
-            Mark processing
+            <Send />
+            Mark as sending
           </Button>
         )}
+
+        {available
+          .filter((prompt) => prompt.destructive)
+          .map((prompt) => (
+            <PromptButton
+              key={prompt.target}
+              prompt={prompt}
+              disabled={busy}
+              onClick={() => setOpen(prompt.target)}
+            />
+          ))}
       </div>
 
       {available.map((prompt) => (
@@ -243,5 +257,27 @@ export function WithdrawalActions({ withdrawal }: { withdrawal: Withdrawal }) {
         />
       ))}
     </>
+  );
+}
+
+function PromptButton({
+  prompt,
+  disabled,
+  onClick,
+}: {
+  prompt: Prompt;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      size="sm"
+      variant={prompt.destructive ? "destructive" : "default"}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      <prompt.icon />
+      {prompt.buttonLabel}
+    </Button>
   );
 }

@@ -19,7 +19,7 @@ export default function WithdrawalsPage() {
     <div className="flex min-w-0 flex-1 flex-col gap-4">
       <PageHeader
         title="Withdrawals"
-        description="Creator payout requests. Approve, record a transfer, or send the money back."
+        description="Creators asking to be paid. Open a request to see what to do next."
         actions={
           <Button variant="outline" render={<Link href="/exports" />}>
             <Download />

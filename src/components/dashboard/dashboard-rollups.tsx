@@ -104,27 +104,27 @@ export function WithdrawalsRollup({ rollup }: { rollup: WithdrawalRollup }) {
   return (
     <StatGrid>
       <StatCard
-        label="Pending"
+        label="Needs review"
         value={formatNumber(rollup.pending)}
-        hint="Waiting on an admin"
+        hint="New requests to approve or reject"
       />
       <StatCard
-        label="In progress"
+        label="Ready to pay"
         value={formatNumber(rollup.approved + rollup.processing)}
         hint={`${formatNumber(rollup.approved)} approved, ${formatNumber(
           rollup.processing
-        )} processing`}
+        )} being sent`}
       />
       <StatCard
-        label="Open amount"
+        label="Still to pay"
         value={formatCurrency(rollup.open_amount)}
-        hint="Debited from balances, not yet sent"
+        hint="Owed on open requests, not sent yet"
       />
       <StatCard
         label="Paid out"
         value={formatCurrency(rollup.paid_amount)}
         tone="muted"
-        hint={`${formatNumber(rollup.paid_count)} transfers`}
+        hint={`${formatNumber(rollup.paid_count)} payments sent`}
       />
     </StatGrid>
   );

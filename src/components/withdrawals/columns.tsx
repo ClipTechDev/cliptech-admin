@@ -2,8 +2,8 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { formatCurrency, formatDateTime, humanise, orDash } from "@/lib/format";
-import type { Withdrawal } from "@/schemas/withdrawal";
+import { formatCurrency, formatDateTime, orDash } from "@/lib/format";
+import { withdrawalMethodLabel, type Withdrawal } from "@/schemas/withdrawal";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { IdLink } from "@/components/shared/id-link";
 import { WithdrawalStatusBadge } from "@/components/withdrawals/withdrawal-status-badge";
@@ -48,7 +48,7 @@ export const withdrawalColumns: ColumnDef<Withdrawal>[] = [
   {
     accessorKey: "method",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Method" />,
-    cell: ({ row }) => <span>{humanise(row.original.method)}</span>,
+    cell: ({ row }) => <span>{withdrawalMethodLabel(row.original.method)}</span>,
     enableSorting: false,
   },
   {

@@ -120,11 +120,15 @@ function Queues({ overview }: { overview: Overview }) {
         urgent={submissions.pending > 0}
       />
       <QueueCard
-        label="Payouts in flight"
+        label="Payouts to send"
         value={formatNumber(openWithdrawals(withdrawals))}
-        hint={`${formatCurrency(withdrawals.open_amount)} debited, not yet sent`}
-        href="/withdrawals?status=pending"
-        urgent={withdrawals.pending > 0}
+        hint={
+          openWithdrawals(withdrawals) === 0
+            ? "Nobody is waiting to be paid"
+            : `${formatCurrency(withdrawals.open_amount)} waiting to be paid to creators`
+        }
+        href="/withdrawals?status=open"
+        urgent={openWithdrawals(withdrawals) > 0}
       />
       <QueueCard
         label="Owed to creators"

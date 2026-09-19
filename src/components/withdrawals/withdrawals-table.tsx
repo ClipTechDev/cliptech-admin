@@ -3,8 +3,13 @@
 import { useListParams } from "@/hooks/use-list-params";
 import { WITHDRAWAL_FILTER_KEYS, useWithdrawalsQuery } from "@/hooks/use-withdrawals";
 import { isFiltered as hasFilters } from "@/lib/list-params";
-import { humanise } from "@/lib/format";
-import { WITHDRAWAL_METHODS, WITHDRAWAL_STATUSES } from "@/schemas/withdrawal";
+import {
+  OPEN_WITHDRAWALS_FILTER,
+  WITHDRAWAL_METHODS,
+  WITHDRAWAL_STATUSES,
+  WITHDRAWAL_STATUS_LABELS,
+  withdrawalMethodLabel,
+} from "@/schemas/withdrawal";
 import { DataTable } from "@/components/data-table/data-table";
 import { serverPaginationFor } from "@/components/data-table/server-pagination";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
@@ -12,14 +17,17 @@ import { QueryState } from "@/components/shared/query-state";
 import { CreatorScopeFilter } from "@/components/users/creator-scope-filter";
 import { withdrawalColumns } from "@/components/withdrawals/columns";
 
-const statusOptions = WITHDRAWAL_STATUSES.map((status) => ({
-  value: status,
-  label: humanise(status),
-}));
+const statusOptions = [
+  { value: OPEN_WITHDRAWALS_FILTER, label: "Still to pay (all open)" },
+  ...WITHDRAWAL_STATUSES.map((status) => ({
+    value: status,
+    label: WITHDRAWAL_STATUS_LABELS[status],
+  })),
+];
 
 const methodOptions = WITHDRAWAL_METHODS.map((method) => ({
   value: method,
-  label: humanise(method),
+  label: withdrawalMethodLabel(method),
 }));
 
 /**
@@ -59,7 +67,7 @@ export function WithdrawalsTable({
         emptyMessage={
           hasFilters(params)
             ? "No payout requests match these filters."
-            : "No creator has requested a payout yet."
+            : "No creator has asked to be paid yet."
         }
         serverPagination={serverPaginationFor(params, meta, setParams)}
         toolbar={(table) => (

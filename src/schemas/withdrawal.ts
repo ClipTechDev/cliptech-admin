@@ -1,3 +1,4 @@
+import { humanise } from "@/lib/format";
 import type { PageMeta } from "@/schemas/common";
 
 /**
@@ -18,8 +19,69 @@ export const WITHDRAWAL_STATUSES = [
 ] as const;
 export type WithdrawalStatus = (typeof WITHDRAWAL_STATUSES)[number];
 
+export const OPEN_WITHDRAWALS_FILTER = "open";
+
+export const WITHDRAWAL_STATUS_LABELS: Record<WithdrawalStatus, string> = {
+  pending: "Needs review",
+  approved: "Approved, ready to pay",
+  processing: "Payment sending",
+  paid: "Paid",
+  rejected: "Rejected, refunded",
+  failed: "Payment failed, refunded",
+  cancelled: "Cancelled, refunded",
+};
+
+export const WITHDRAWAL_NEXT_STEPS: Record<WithdrawalStatus, string> = {
+  pending:
+    "Check the creator and where the money is going. If it looks right, click Approve. If not, click Reject and say why.",
+  approved:
+    "Send the money using the payment details below, by PayPal or to the crypto wallet. When it's sent, click Mark as paid and paste the transaction ID.",
+  processing:
+    "The payment has been started. Once it has gone through, click Mark as paid. If it bounced or was returned, click Payment failed.",
+  paid: "Nothing to do. The money has been sent to the creator.",
+  rejected: "Nothing to do. The request was refused and the money is back in the creator's balance.",
+  failed: "Nothing to do. The payment didn't go through and the money is back in the creator's balance. The creator can request it again.",
+  cancelled: "Nothing to do. The request was cancelled and the money is back in the creator's balance.",
+};
+
+export const WITHDRAWAL_PROGRESS_STEPS = ["Requested", "Approved", "Sending", "Paid"] as const;
+
+export function withdrawalProgress(status: WithdrawalStatus): number {
+  switch (status) {
+    case "pending":
+      return 0;
+    case "approved":
+      return 1;
+    case "processing":
+      return 2;
+    case "paid":
+      return 3;
+    default:
+      return -1;
+  }
+}
+
 /** Mirrors `allowed_withdrawal_methods` in cliptech-api's config.yaml. */
 export const WITHDRAWAL_METHODS = ["paypal", "crypto"] as const;
+
+const METHOD_LABELS: Record<string, string> = {
+  paypal: "PayPal",
+  crypto: "Crypto wallet",
+};
+
+const METHOD_ADDRESS_LABELS: Record<string, string> = {
+  paypal: "PayPal email",
+  crypto: "Wallet address",
+};
+
+export function withdrawalMethodLabel(method: string): string {
+  return METHOD_LABELS[method] ?? humanise(method);
+}
+
+export function payoutDetailLabel(method: string, key: string): string {
+  if (key === "content") return METHOD_ADDRESS_LABELS[method] ?? "Send to";
+  return humanise(key);
+}
 
 export type Withdrawal = {
   id: string;

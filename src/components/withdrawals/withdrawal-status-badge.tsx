@@ -1,6 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { humanise } from "@/lib/format";
-import type { WithdrawalStatus } from "@/schemas/withdrawal";
+import { WITHDRAWAL_STATUS_LABELS, type WithdrawalStatus } from "@/schemas/withdrawal";
 
 /**
  * One place deciding how each payout state looks.
@@ -22,5 +21,5 @@ const variants: Record<WithdrawalStatus, "default" | "secondary" | "destructive"
 };
 
 export function WithdrawalStatusBadge({ status }: { status: WithdrawalStatus }) {
-  return <Badge variant={variants[status] ?? "secondary"}>{humanise(status)}</Badge>;
+  return <Badge variant={variants[status] ?? "secondary"}>{WITHDRAWAL_STATUS_LABELS[status] ?? status}</Badge>;
 }
