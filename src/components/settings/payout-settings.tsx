@@ -1,6 +1,10 @@
 "use client";
 
-import { MAX_BATCH_LIMIT, type Settings } from "@/schemas/settings";
+import {
+  MAX_BATCH_LIMIT,
+  MAX_MINIMUM_WITHDRAWAL,
+  type Settings,
+} from "@/schemas/settings";
 import {
   FormControl,
   FormDescription,
@@ -29,6 +33,15 @@ export function PayoutSettingsFields({
   return (
     <div className="min-w-0 space-y-6">
       <Grid>
+        <NumberField
+          control={control}
+          name="payout.minimum_withdrawal"
+          label="Minimum withdrawal"
+          fallback={defaults.payout.minimum_withdrawal}
+          max={MAX_MINIMUM_WITHDRAWAL}
+          step="0.01"
+          description="The smallest amount a creator can request in one withdrawal. Applies to new requests straight away; requests already in the queue are unaffected."
+        />
         <DurationField
           control={control}
           name="payout.settlement_grace"

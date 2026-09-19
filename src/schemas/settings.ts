@@ -52,6 +52,7 @@ export type PayoutSettings = {
   batch_limit: number;
   large_snapshot_warning: number;
   snapshot_thresholds: number[];
+  minimum_withdrawal: number;
 };
 
 export type Settings = {
@@ -107,6 +108,16 @@ const ratio = z
 export const MAX_BATCH_LIMIT = 5000;
 export const MAX_FAILURE_RUNS = 50;
 export const MAX_RESOLVE_PAGES = 50;
+export const MAX_MINIMUM_WITHDRAWAL = 1_000_000;
+
+const minimumWithdrawal = z
+  .number({ message: "Minimum withdrawal must be a number" })
+  .min(0.01, "Minimum withdrawal must be at least 0.01")
+  .max(MAX_MINIMUM_WITHDRAWAL, `Minimum withdrawal must be at most ${MAX_MINIMUM_WITHDRAWAL}`)
+  .refine(
+    (value) => Number.isInteger(Number((value * 100).toFixed(6))),
+    "Minimum withdrawal supports at most 2 decimal places"
+  );
 
 /**
  * Thresholds are typed as a comma-separated list - "25, 50, 75, 100" - which
@@ -213,6 +224,7 @@ export const settingsFormSchema = z.object({
     batch_limit: count("Batch limit", MAX_BATCH_LIMIT),
     large_snapshot_warning: count("Large snapshot warning", 1_000_000),
     snapshot_thresholds: thresholds,
+    minimum_withdrawal: minimumWithdrawal,
   }),
 });
 
@@ -241,6 +253,7 @@ export function settingsFormDefaults(settings: Settings): SettingsFormValues {
       batch_limit: settings.payout.batch_limit,
       large_snapshot_warning: settings.payout.large_snapshot_warning,
       snapshot_thresholds: settings.payout.snapshot_thresholds.join(", "),
+      minimum_withdrawal: settings.payout.minimum_withdrawal,
     },
   };
 }
