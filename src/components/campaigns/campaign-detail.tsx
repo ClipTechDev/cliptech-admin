@@ -25,6 +25,7 @@ import { StatCard, StatGrid } from "@/components/shared/stat-card";
 import { CampaignApprovalNotice } from "@/components/campaigns/campaign-approval-notice";
 import { CampaignBudget } from "@/components/campaigns/campaign-budget";
 import { CampaignForm } from "@/components/campaigns/campaign-form";
+import { CampaignMembers } from "@/components/campaigns/campaign-members";
 import { CampaignSettle } from "@/components/campaigns/campaign-settle";
 import { CampaignSnapshots } from "@/components/campaigns/campaign-snapshots";
 import { CampaignStatusActions } from "@/components/campaigns/campaign-status-actions";
@@ -152,6 +153,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
               <TabsList>
                 <TabsTrigger value="submissions">Submissions</TabsTrigger>
+                <TabsTrigger value="members">Members</TabsTrigger>
                 <TabsTrigger value="payouts">Payout history</TabsTrigger>
                 <TabsTrigger value="details">Details</TabsTrigger>
                 <TabsTrigger value="edit">Edit</TabsTrigger>
@@ -160,6 +162,10 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
 
             <TabsContent value="submissions" className="min-w-0 pt-4">
               <SubmissionsTable campaignId={campaign.id} onSelect={setOpenSubmission} />
+            </TabsContent>
+
+            <TabsContent value="members" className="min-w-0 pt-4">
+              <CampaignMembers campaign={campaign} />
             </TabsContent>
 
             <TabsContent value="payouts" className="min-w-0 pt-4">
