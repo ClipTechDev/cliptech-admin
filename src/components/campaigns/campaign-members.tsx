@@ -6,7 +6,7 @@ import { Check, CircleHelp, RefreshCw, UserMinus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
-import { formatDateTime, platformLabel } from "@/lib/format";
+import { formatDateTime, formatHandle, platformLabel } from "@/lib/format";
 import {
   useApproveMember,
   useCampaignMembersQuery,
@@ -135,7 +135,7 @@ export function MemberCard({
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-medium">
-              @{member.username || "unknown"}{" "}
+              {member.username ? formatHandle(member.username) : "@unknown"}{" "}
               <span className="text-muted-foreground text-sm font-normal">
                 on {platformLabel(member.platform)}
               </span>

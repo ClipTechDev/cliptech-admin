@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { formatDateTime, platformLabel } from "@/lib/format";
+import { formatDateTime, formatHandle, platformLabel } from "@/lib/format";
 import { useReleaseClaimMutation, useSocialClaimsQuery } from "@/hooks/use-social-claims";
 import type { SocialClaim } from "@/schemas/social-account";
 import {
@@ -57,7 +57,7 @@ export function SocialClaims() {
 
     release.mutate(releasing.id, {
       onSuccess: () => {
-        toast.success(`Released @${releasing.handle}`);
+        toast.success(`Released ${formatHandle(releasing.handle)}`);
         setReleasing(null);
       },
       onError: (err) => toast.error(errorMessage(err)),
@@ -98,7 +98,7 @@ export function SocialClaims() {
           <TableBody>
             {claims.map((claim) => (
               <TableRow key={claim.id}>
-                <TableCell className="font-medium">@{claim.handle}</TableCell>
+                <TableCell className="font-medium">{formatHandle(claim.handle)}</TableCell>
                 <TableCell>{platformLabel(claim.platform)}</TableCell>
                 <TableCell>
                   <Link
@@ -160,7 +160,7 @@ export function SocialClaims() {
       <AlertDialog open={releasing !== null} onOpenChange={(open) => !open && setReleasing(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Release @{releasing?.handle}?</AlertDialogTitle>
+            <AlertDialogTitle>Release {releasing ? formatHandle(releasing.handle) : ""}?</AlertDialogTitle>
             <AlertDialogDescription>
               The creator holding this verification loses the code they were
               given, and the handle is free for anyone to claim. Nothing that is
