@@ -128,6 +128,7 @@ export const SUBMISSION_ISSUE_CODES = [
   "not_post_owner",
   "missing_hashtags",
   "views_unavailable",
+  "page_not_joined",
 ] as const;
 
 const ISSUE_LABELS: Record<SubmissionIssueCode, string> = {
@@ -137,6 +138,7 @@ const ISSUE_LABELS: Record<SubmissionIssueCode, string> = {
   not_post_owner: "The post isn't on any of the creator's connected accounts",
   missing_hashtags: "Required hashtags are missing from the caption",
   views_unavailable: "The post doesn't report views (e.g. a photo, not a video)",
+  page_not_joined: "Posted from a page that hasn't joined this campaign",
 };
 
 export function issueLabel(issue: SubmissionIssue): string {
