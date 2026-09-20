@@ -1,6 +1,19 @@
 import { z } from "zod";
 
 import type { PageMeta } from "@/schemas/common";
+import {
+  ELIGIBILITY_MATCHES,
+  JOIN_METHODS,
+  emptyRuleRow,
+  ruleRowFromView,
+  ruleRowPayload,
+  ruleRowSchema,
+  type EligibilityMatch,
+  type JoinMethod,
+  type RuleRow,
+  type RuleType,
+  type RuleView,
+} from "@/schemas/eligibility";
 import { SOCIAL_PLATFORMS } from "@/schemas/social-account";
 
 /**
@@ -75,6 +88,10 @@ export type Campaign = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+
+  join_method: JoinMethod;
+  eligibility_match: EligibilityMatch;
+  eligibility_rules: RuleView[];
 };
 
 export type CampaignsListResponse = {
@@ -125,6 +142,7 @@ const MAX_TEXT = 10000;
 const MAX_LINKS = 20;
 const MAX_HASHTAGS = 10;
 const MAX_HASHTAG_LEN = 100;
+const MAX_RULES = 20;
 /** minCampaignRun: a campaign must run for at least an hour. */
 const MIN_RUN_MS = 60 * 60 * 1000;
 
@@ -184,7 +202,22 @@ export const campaignFormSchema = z
       .int()
       .min(1, "Between 1 and 100")
       .max(100, "Between 1 and 100"),
+
+    join_method: z.enum(JOIN_METHODS),
+    eligibility_match: z.enum(ELIGIBILITY_MATCHES),
+    eligibility_rules: z.array(ruleRowSchema).max(MAX_RULES, `At most ${MAX_RULES} requirements`),
   })
+  .refine((values) => values.join_method !== "criteria" || values.eligibility_rules.length > 0, {
+    path: ["eligibility_rules"],
+    message: "Add at least one requirement, or let anyone join",
+  })
+  .refine(
+    (values) => {
+      const pairs = values.eligibility_rules.map((row) => `${row.rule_type}|${row.operator}`);
+      return new Set(pairs).size === pairs.length;
+    },
+    { path: ["eligibility_rules"], message: "The same requirement and condition is listed twice" }
+  )
   // Cross-field rules, mirroring validateWindow and validateMaxPayout. They
   // live here so the form can say which field is wrong, instead of the API
   // rejecting the whole submit with one message.
@@ -286,7 +319,10 @@ export function splitHashtags(value: string): string[] {
   return tags;
 }
 
-export function campaignFormDefaults(campaign?: Campaign): CampaignFormValues {
+export function campaignFormDefaults(
+  campaign?: Campaign,
+  ruleTypes: RuleType[] = []
+): CampaignFormValues {
   return {
     name: campaign?.name ?? "",
     banner_url: campaign?.banner_url ?? "",
@@ -302,6 +338,36 @@ export function campaignFormDefaults(campaign?: Campaign): CampaignFormValues {
     starts_at: toLocalInput(campaign?.starts_at),
     ends_at: toLocalInput(campaign?.ends_at),
     submission_cutoff_percent: campaign?.submission_cutoff_percent ?? 80,
+    join_method: campaign?.join_method ?? "open",
+    eligibility_match: campaign?.eligibility_match ?? "all",
+    eligibility_rules: (campaign?.eligibility_rules ?? []).map((view) =>
+      ruleRowFromView(view, ruleTypes)
+    ),
+  };
+}
+
+export function newRuleRow(): RuleRow {
+  return { ...emptyRuleRow };
+}
+
+function eligibilityPayload(values: CampaignFormValues) {
+  return {
+    join_method: values.join_method,
+    eligibility_match: values.eligibility_match,
+    eligibility_rules:
+      values.join_method === "open" ? [] : values.eligibility_rules.map(ruleRowPayload),
+  };
+}
+
+function campaignEligibility(campaign: Campaign) {
+  return {
+    join_method: campaign.join_method ?? "open",
+    eligibility_match: campaign.eligibility_match ?? "all",
+    eligibility_rules: (campaign.eligibility_rules ?? []).map((rule) => ({
+      rule_type: rule.rule_type,
+      operator: rule.operator,
+      value: rule.value,
+    })),
   };
 }
 
@@ -344,6 +410,7 @@ export function campaignCreatePayload(
     ends_at: fromLocalInput(values.ends_at),
     submission_cutoff_percent: values.submission_cutoff_percent,
     status,
+    ...eligibilityPayload(values),
   };
 }
 
@@ -398,6 +465,11 @@ export function campaignFormDiff(
 
   if (values.submission_cutoff_percent !== campaign.submission_cutoff_percent) {
     diff.submission_cutoff_percent = values.submission_cutoff_percent;
+  }
+
+  const nextEligibility = eligibilityPayload(values);
+  if (JSON.stringify(nextEligibility) !== JSON.stringify(campaignEligibility(campaign))) {
+    Object.assign(diff, nextEligibility);
   }
 
   return diff;

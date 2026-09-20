@@ -15,6 +15,8 @@ import {
   useUpdateCampaignMutation,
 } from "@/hooks/use-campaigns";
 import { useAdminMeQuery } from "@/hooks/use-admin";
+import { useRuleTypesQuery } from "@/hooks/use-eligibility";
+import type { RuleType } from "@/schemas/eligibility";
 import { SUPER_ADMIN_ROLE } from "@/schemas/admin";
 import {
   APPROVAL_THRESHOLD,
@@ -42,6 +44,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckboxGroup } from "@/components/shared/checkbox-group";
+import { QueryState } from "@/components/shared/query-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EligibilityFields } from "@/components/campaigns/eligibility-fields";
 import {
   ImageUploadField,
   type ImageUploadFieldHandle,
@@ -63,6 +68,27 @@ const platformOptions = SOCIAL_PLATFORMS.map((platform) => ({
  * have to submit to find out a field was never theirs to change.
  */
 export function CampaignForm({ campaign }: { campaign?: Campaign }) {
+  const ruleTypes = useRuleTypesQuery();
+
+  return (
+    <QueryState
+      isLoading={ruleTypes.isPending}
+      loadingFallback={<Skeleton className="h-96 max-w-3xl rounded-lg" />}
+      error={ruleTypes.error}
+      onRetry={() => void ruleTypes.refetch()}
+    >
+      {ruleTypes.data && <CampaignFormFields campaign={campaign} ruleTypes={ruleTypes.data} />}
+    </QueryState>
+  );
+}
+
+function CampaignFormFields({
+  campaign,
+  ruleTypes,
+}: {
+  campaign?: Campaign;
+  ruleTypes: RuleType[];
+}) {
   const router = useRouter();
   const editing = Boolean(campaign);
   const draft = !editing || isDraft(campaign);
@@ -75,7 +101,7 @@ export function CampaignForm({ campaign }: { campaign?: Campaign }) {
 
   const form = useForm<CampaignFormValues>({
     resolver: zodResolver(schema),
-    defaultValues: campaignFormDefaults(campaign),
+    defaultValues: campaignFormDefaults(campaign, ruleTypes),
   });
 
   const create = useCreateCampaignMutation();
@@ -103,11 +129,11 @@ export function CampaignForm({ campaign }: { campaign?: Campaign }) {
     if (campaign) {
       // The record is the source of truth: on a fresh copy (after a save, or a
       // refetch elsewhere) re-seed the form and drop any staged banner too.
-      form.reset(campaignFormDefaults(campaign));
+      form.reset(campaignFormDefaults(campaign, ruleTypes));
       bannerRef.current?.reset();
       setBannerPending(false);
     }
-  }, [campaign, form]);
+  }, [campaign, ruleTypes, form]);
 
   const { data: me } = useAdminMeQuery();
   const isSuperAdmin = me?.roles.includes(SUPER_ADMIN_ROLE) ?? false;
@@ -282,8 +308,10 @@ export function CampaignForm({ campaign }: { campaign?: Campaign }) {
                 </FormControl>
                 <FormDescription>
                   Up to 10, separated by commas or spaces. The leading # is optional and
-                  is stripped — creators see it added back. Shown on the campaign page;
-                  posts are not checked against it automatically.
+                  is stripped — creators see it added back. Shown on the campaign page,
+                  and every submitted post&apos;s caption is checked for them: a post
+                  missing one is held with the missing tags listed, and cannot be
+                  approved until the creator fixes the caption and re-checks it.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -455,6 +483,14 @@ export function CampaignForm({ campaign }: { campaign?: Campaign }) {
           />
         </Fieldset>
 
+        <Fieldset legend="Joining">
+          <EligibilityFields
+            control={form.control}
+            setValue={form.setValue}
+            ruleTypes={ruleTypes}
+          />
+        </Fieldset>
+
         <Fieldset legend="Schedule">
           <div className="grid gap-6 sm:grid-cols-2">
             <FormField
@@ -503,7 +539,7 @@ export function CampaignForm({ campaign }: { campaign?: Campaign }) {
                 variant="outline"
                 disabled={pending || !hasChanges}
                 onClick={() => {
-                  form.reset(campaignFormDefaults(campaign));
+                  form.reset(campaignFormDefaults(campaign, ruleTypes));
                   bannerRef.current?.reset();
                 }}
               >
