@@ -7,6 +7,7 @@ import {
   Download,
   FileVideo,
   LayoutDashboard,
+  ListChecks,
   MessageSquareWarning,
   Megaphone,
   BellRing,
@@ -15,6 +16,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Activity,
+  UserPlus,
   Users,
 } from "lucide-react";
 
@@ -68,6 +70,8 @@ const navGroups: NavGroup[] = [
     label: "Operations",
     items: [
       { title: "Campaigns", url: "/campaigns", icon: Megaphone, role: "campaigns" },
+      { title: "Join requests", url: "/join-requests", icon: UserPlus, role: "campaigns" },
+      { title: "Join requirements", url: "/eligibility-rules", icon: ListChecks, role: "campaigns" },
       { title: "Submissions", url: "/submissions", icon: FileVideo, role: "submissions" },
       { title: "Withdrawals", url: "/withdrawals", icon: Banknote, role: "withdrawals" },
     ],
