@@ -64,6 +64,7 @@ export type AdminDashboard = {
    * how much the next settlement will move.
    */
   pending_earnings: number;
+  pending_join_requests: number;
 };
 
 export type AdminDashboardResponse = {

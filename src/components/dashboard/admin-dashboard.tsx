@@ -91,12 +91,15 @@ export function AdminDashboard() {
 function Queues({ overview }: { overview: Overview }) {
   const { campaigns, submissions, withdrawals, pending_earnings: pendingEarnings } = overview;
   const awaitingApproval = campaigns.pending_approval;
+  const joinRequests = overview.pending_join_requests ?? 0;
 
   return (
     <div
       className={cn(
         "grid gap-3",
-        awaitingApproval > 0 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"
+        awaitingApproval > 0 || joinRequests > 0
+          ? "sm:grid-cols-2 lg:grid-cols-4"
+          : "sm:grid-cols-3"
       )}
     >
       {awaitingApproval > 0 && (
@@ -105,6 +108,15 @@ function Queues({ overview }: { overview: Overview }) {
           value={formatNumber(awaitingApproval)}
           hint="Budget over the limit, waiting on a super admin"
           href="/campaigns?status=pending_approval"
+          urgent
+        />
+      )}
+      {joinRequests > 0 && (
+        <QueueCard
+          label="Join requests to review"
+          value={formatNumber(joinRequests)}
+          hint="Pages asking to join a campaign"
+          href="/join-requests"
           urgent
         />
       )}
